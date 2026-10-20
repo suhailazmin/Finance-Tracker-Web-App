@@ -9,4 +9,5 @@ if (!url || !key) {
   )
 }
 
-export const supabase = createClient(url, key)
+// Use only the origin, so a pasted ".../rest/v1/" URL doesn't break auth requests
+export const supabase = createClient(new URL(url).origin, key)
