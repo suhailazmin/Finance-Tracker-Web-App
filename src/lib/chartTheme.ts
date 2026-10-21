@@ -5,6 +5,8 @@ import { formatRMCompact } from './format'
 export const chartColors = {
   income: '#2a78d6',
   expenses: '#eb6834',
+  // under 3:1 contrast on white, so savings bars always show their amounts as text
+  savings: '#1baf7a',
   grid: '#e1e0d9',
   baseline: '#c3c2b7',
   axisText: '#898781',

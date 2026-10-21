@@ -26,6 +26,16 @@ export type Budget = {
   limit_amount: number
 }
 
+export type SavingsGoal = {
+  id: string
+  name: string
+  target_amount: number
+  current_amount: number
+  target_date: string | null // yyyy-mm-dd
+}
+
+export type SavingsGoalInput = Omit<SavingsGoal, 'id'>
+
 export type CategoryRule = {
   id: string
   keyword: string // matched case-insensitively as whole words
