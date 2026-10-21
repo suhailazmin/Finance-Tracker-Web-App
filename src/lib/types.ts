@@ -18,3 +18,10 @@ export type Transaction = {
 }
 
 export type TransactionInput = Omit<Transaction, 'id' | 'source'>
+
+export type CategoryRule = {
+  id: string
+  keyword: string // matched case-insensitively as whole words
+  category_id: string
+  priority: number // higher wins
+}

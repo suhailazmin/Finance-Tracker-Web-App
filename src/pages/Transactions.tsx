@@ -3,6 +3,7 @@ import { format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
 import MonthPicker from '../components/MonthPicker'
 import TransactionForm from '../components/TransactionForm'
 import { useCategories } from '../hooks/useCategories'
+import { useCategoryRules } from '../hooks/useCategoryRules'
 import { useTransactions } from '../hooks/useTransactions'
 import { formatRM } from '../lib/format'
 import type { Category, Transaction, TransactionInput } from '../lib/types'
@@ -11,6 +12,7 @@ export default function Transactions() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [editingId, setEditingId] = useState<string | null>(null)
   const { categories } = useCategories()
+  const { rules } = useCategoryRules()
   const { transactions, loading, error, add, update, remove } = useTransactions(month)
 
   const categoryById = new Map(categories.map((c) => [c.id, c]))
@@ -50,7 +52,7 @@ export default function Transactions() {
 
       <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h2 className="mb-3 font-semibold">Add transaction</h2>
-        <TransactionForm categories={categories} onSubmit={handleAdd} />
+        <TransactionForm categories={categories} rules={rules} onSubmit={handleAdd} />
       </section>
 
       <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
@@ -71,6 +73,7 @@ export default function Transactions() {
                   <li key={t.id} className="p-5">
                     <TransactionForm
                       categories={categories}
+                      rules={rules}
                       initial={t}
                       onSubmit={async (input) => {
                         const message = await update(t.id, input)
