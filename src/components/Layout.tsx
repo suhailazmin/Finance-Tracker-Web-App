@@ -5,8 +5,8 @@ import { useAuth } from '../auth/AuthContext'
 const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/transactions', label: 'Transactions' },
+  { to: '/budgets', label: 'Budgets' },
   { to: '/rules', label: 'Rules' },
-  { to: '/account', label: 'Account' },
 ]
 
 export default function Layout() {
@@ -20,6 +20,14 @@ export default function Layout() {
             <span className="font-semibold">Finance Tracker</span>
             <div className="flex items-center gap-3 text-sm">
               <span className="hidden text-slate-500 sm:inline">{session?.user.email}</span>
+              <NavLink
+                to="/account"
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-1.5 ${isActive ? 'bg-emerald-50 font-medium text-emerald-700' : 'text-slate-600 hover:bg-slate-100'}`
+                }
+              >
+                Account
+              </NavLink>
               <button
                 onClick={() => supabase.auth.signOut()}
                 className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-100"
