@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { format } from 'date-fns'
-import type { Category, Transaction, TransactionInput, TransactionType } from '../lib/types'
+import { findRule } from '../lib/categorize'
+import type { Category, CategoryRule, Transaction, TransactionInput, TransactionType } from '../lib/types'
 
 type Props = {
   categories: Category[]
+  rules?: CategoryRule[]
   initial?: Transaction
   onSubmit: (input: TransactionInput) => Promise<string | undefined>
   onCancel?: () => void
@@ -15,21 +17,28 @@ const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
 const field =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20'
 
-export default function TransactionForm({ categories, initial, onSubmit, onCancel }: Props) {
+export default function TransactionForm({ categories, rules = [], initial, onSubmit, onCancel }: Props) {
   const [type, setType] = useState<TransactionType>(initial?.type ?? 'expense')
   const [date, setDate] = useState(() => initial?.date ?? format(new Date(), 'yyyy-MM-dd'))
   const [description, setDescription] = useState(initial?.description ?? '')
   const [amount, setAmount] = useState(initial ? initial.amount.toFixed(2) : '')
-  const [categoryId, setCategoryId] = useState(initial?.category_id ?? '')
+  // null until the user picks a category themselves; until then the rules decide
+  const [chosenCategoryId, setChosenCategoryId] = useState<string | null>(initial ? (initial.category_id ?? '') : null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const options = categories.filter((c) => c.type === type)
 
+  // Auto-categorization: only use a rule whose category fits the current type
+  const rule = findRule(description, rules)
+  const autoCategoryId = rule && options.some((c) => c.id === rule.category_id) ? rule.category_id : ''
+  const categoryId = chosenCategoryId ?? autoCategoryId
+  const isAuto = chosenCategoryId === null && autoCategoryId !== ''
+
   function changeType(next: TransactionType) {
     setType(next)
-    // a category only belongs to one type, so clear it if it no longer fits
-    if (!categories.some((c) => c.id === categoryId && c.type === next)) setCategoryId('')
+    // a category only belongs to one type, so drop the user's pick if it no longer fits
+    if (!categories.some((c) => c.id === chosenCategoryId && c.type === next)) setChosenCategoryId(null)
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -62,6 +71,7 @@ export default function TransactionForm({ categories, initial, onSubmit, onCance
         // keep date and type for quick entry of the next transaction
         setDescription('')
         setAmount('')
+        setChosenCategoryId(null)
       }
     }
   }
@@ -123,7 +133,7 @@ export default function TransactionForm({ categories, initial, onSubmit, onCance
 
       <label className="block text-sm">
         <span className="font-medium">Category</span>
-        <select className={`${field} mt-1`} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+        <select className={`${field} mt-1`} value={categoryId} onChange={(e) => setChosenCategoryId(e.target.value)}>
           <option value="">Uncategorized</option>
           {options.map((c) => (
             <option key={c.id} value={c.id}>
@@ -131,6 +141,11 @@ export default function TransactionForm({ categories, initial, onSubmit, onCance
             </option>
           ))}
         </select>
+        {isAuto && rule && (
+          <span className="mt-1 block text-xs text-emerald-700">
+            ✨ Picked automatically because it contains “{rule.keyword}”
+          </span>
+        )}
       </label>
 
       {error && <p className="text-sm text-red-700">{error}</p>}
