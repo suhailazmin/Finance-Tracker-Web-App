@@ -6,6 +6,7 @@ const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/transactions', label: 'Transactions' },
   { to: '/budgets', label: 'Budgets' },
+  { to: '/goals', label: 'Goals' },
   { to: '/rules', label: 'Rules' },
 ]
 
@@ -44,7 +45,7 @@ export default function Layout() {
                 to={l.to}
                 end
                 className={({ isActive }) =>
-                  `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm ${
+                  `whitespace-nowrap rounded-lg px-2 py-1.5 sm:px-3 text-sm ${
                     isActive ? 'bg-emerald-50 font-medium text-emerald-700' : 'text-slate-600 hover:bg-slate-100'
                   }`
                 }

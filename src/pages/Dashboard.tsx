@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { addMonths, format, startOfMonth } from 'date-fns'
 import BudgetSummary from '../components/BudgetSummary'
+import GoalsSummary from '../components/GoalsSummary'
 import MonthPicker from '../components/MonthPicker'
 import StatTile from '../components/StatTile'
 import CategoryBreakdown from '../components/charts/CategoryBreakdown'
@@ -10,6 +11,7 @@ import MonthlyTrendChart from '../components/charts/MonthlyTrendChart'
 import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
 import { useMonthlyTotals } from '../hooks/useMonthlyTotals'
+import { useSavingsGoals } from '../hooks/useSavingsGoals'
 import { useTransactions } from '../hooks/useTransactions'
 import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
@@ -21,6 +23,7 @@ export default function Dashboard() {
   const { transactions, loading, error } = useTransactions(month)
   const { totals } = useMonthlyTotals(month, 6)
   const { budgets } = useBudgets(month)
+  const { goals } = useSavingsGoals()
 
   const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
@@ -73,9 +76,14 @@ export default function Dashboard() {
         </div>
       )}
 
-      <Card title="Budgets">
-        <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} />
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card title="Budgets">
+          <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} />
+        </Card>
+        <Card title="Savings goals">
+          <GoalsSummary goals={goals} />
+        </Card>
+      </div>
 
       <Card title="Income vs expenses, last 6 months">
         <MonthlyTrendChart totals={totals} />
