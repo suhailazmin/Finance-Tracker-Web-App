@@ -19,6 +19,13 @@ export type Transaction = {
 
 export type TransactionInput = Omit<Transaction, 'id' | 'source'>
 
+export type Budget = {
+  id: string
+  category_id: string
+  month: string // yyyy-mm-01
+  limit_amount: number
+}
+
 export type CategoryRule = {
   id: string
   keyword: string // matched case-insensitively as whole words

@@ -1,14 +1,17 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { addMonths, format, startOfMonth } from 'date-fns'
+import BudgetSummary from '../components/BudgetSummary'
 import MonthPicker from '../components/MonthPicker'
 import StatTile from '../components/StatTile'
 import CategoryBreakdown from '../components/charts/CategoryBreakdown'
 import DailySpendingChart from '../components/charts/DailySpendingChart'
 import MonthlyTrendChart from '../components/charts/MonthlyTrendChart'
+import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
 import { useMonthlyTotals } from '../hooks/useMonthlyTotals'
 import { useTransactions } from '../hooks/useTransactions'
+import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
 import { formatRM } from '../lib/format'
 
@@ -17,6 +20,7 @@ export default function Dashboard() {
   const { categories } = useCategories()
   const { transactions, loading, error } = useTransactions(month)
   const { totals } = useMonthlyTotals(month, 6)
+  const { budgets } = useBudgets(month)
 
   const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
@@ -68,6 +72,10 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
+
+      <Card title="Budgets">
+        <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} />
+      </Card>
 
       <Card title="Income vs expenses, last 6 months">
         <MonthlyTrendChart totals={totals} />
