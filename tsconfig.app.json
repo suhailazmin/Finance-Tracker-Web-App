@@ -16,6 +16,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Import alias used by shadcn/ui */
+    "paths": { "@/*": ["./src/*"] },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
