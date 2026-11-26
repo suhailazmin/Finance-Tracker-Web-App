@@ -14,7 +14,7 @@ export default function Field({
   children: ReactNode
 }) {
   return (
-    <label className={cn('grid content-start gap-1.5 text-sm', className)}>
+    <label className={cn('grid min-w-0 grid-cols-1 content-start gap-1.5 text-sm', className)}>
       <span className="font-medium leading-none">{label}</span>
       {children}
       {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
