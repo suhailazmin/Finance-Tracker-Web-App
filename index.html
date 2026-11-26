@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- viewport-fit=cover lets the app draw behind the notch; the layout pads with safe-area insets -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#285C45" />
+    <!-- Opened from the Home Screen: full screen with no browser bars -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Monetra" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Monetra – Expenses Tracker</title>
   </head>
   <body>
