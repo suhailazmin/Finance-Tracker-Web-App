@@ -1,6 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { addMonths, format, startOfMonth } from 'date-fns'
+import { Copy } from 'lucide-react'
 import BudgetMeter from '../components/BudgetMeter'
+import { ErrorAlert, FormMessage } from '../components/Feedback'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import MonthPicker from '../components/MonthPicker'
 import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
@@ -44,45 +51,45 @@ export default function Budgets() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Budgets</h1>
-        <MonthPicker month={month} onChange={(m) => { setMonth(m); setCopyMessage('') }} />
-      </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      <PageHeader
+        title="Budgets"
+        description="Monthly spending limits for each category."
+        actions={<MonthPicker month={month} onChange={(m) => { setMonth(m); setCopyMessage('') }} />}
+      />
+      {error && <ErrorAlert message={error} />}
 
       {budgets.length > 0 && (
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-semibold">Total</h2>
-            <p className="text-sm tabular-nums text-slate-600">
-              <span className="font-semibold text-slate-900">{formatRM(totalSpent)}</span> of {formatRM(totalLimit)}
+        <SectionCard
+          title="Total"
+          actions={
+            <p className="text-sm text-muted-foreground tabular-nums">
+              <span className="font-semibold text-foreground">{formatRM(totalSpent)}</span> of {formatRM(totalLimit)}
             </p>
-          </div>
-          <div className="mt-3">
-            <BudgetMeter spent={totalSpent} limit={totalLimit} pace={pace} />
-          </div>
+          }
+        >
+          <BudgetMeter spent={totalSpent} limit={totalLimit} pace={pace} />
           {pace > 0 && pace < 1 && (
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-muted-foreground">
               The grey line marks today: {Math.round(pace * 100)}% of {format(month, 'MMMM')} has passed.
             </p>
           )}
-        </section>
+        </SectionCard>
       )}
 
       {!loading && budgets.length === 0 && (
-        <section className="rounded-2xl bg-white p-5 text-sm shadow-sm ring-1 ring-slate-200">
-          <p className="text-slate-600">No budgets for {format(month, 'MMMM yyyy')} yet. Set a limit below, or:</p>
-          <button
-            onClick={handleCopy}
-            className="mt-3 rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-100"
-          >
+        <SectionCard>
+          <p className="text-sm text-muted-foreground">
+            No budgets for {format(month, 'MMMM yyyy')} yet. Set a limit below, or:
+          </p>
+          <Button variant="outline" onClick={handleCopy} className="mt-3">
+            <Copy />
             Copy {previousName}’s budgets
-          </button>
-          {copyMessage && <p className="mt-2 text-slate-600">{copyMessage}</p>}
-        </section>
+          </Button>
+          {copyMessage && <p className="mt-2 text-sm text-muted-foreground">{copyMessage}</p>}
+        </SectionCard>
       )}
 
-      <section className="divide-y divide-slate-100 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+      <Card className="gap-0 divide-y py-0">
         {sorted.map((c) => (
           <BudgetRow
             key={c.id}
@@ -94,7 +101,7 @@ export default function Budgets() {
             onRemove={(b) => remove(b.id)}
           />
         ))}
-      </section>
+      </Card>
     </div>
   )
 }
@@ -143,14 +150,14 @@ function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps
   return (
     <div className="p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: category.color ?? '#64748b' }} />
+        <span className="flex items-center gap-1.5 text-sm font-medium">
+          <span className="size-2 rounded-full" style={{ backgroundColor: category.color ?? '#64748b' }} />
           {category.name}
         </span>
-        <span className="text-sm tabular-nums text-slate-600">
+        <span className="text-sm text-muted-foreground tabular-nums">
           {budget ? (
             <>
-              <span className="font-medium text-slate-900">{formatRM(spent)}</span> of {formatRM(budget.limit_amount)}
+              <span className="font-medium text-foreground">{formatRM(spent)}</span> of {formatRM(budget.limit_amount)}
             </>
           ) : (
             <>{formatRM(spent)} spent · no limit</>
@@ -166,40 +173,38 @@ function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps
 
       {editing ? (
         <form onSubmit={handleSubmit} className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-slate-600">RM</span>
-          <input
+          <span className="text-sm text-muted-foreground">RM</span>
+          <Input
             autoFocus
             inputMode="decimal"
             placeholder="0.00"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="w-32 rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+            aria-label={`Monthly limit for ${category.name}`}
+            className="w-32"
           />
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
+          <Button type="submit" disabled={busy}>
             {busy ? 'Saving…' : 'Save'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100"
-          >
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setEditing(false)}>
             Cancel
-          </button>
-          {error && <p className="w-full text-sm text-red-700">{error}</p>}
+          </Button>
+          {error && <FormMessage className="w-full">{error}</FormMessage>}
         </form>
       ) : (
-        <div className="mt-2 flex gap-1 text-sm">
-          <button onClick={startEditing} className="rounded px-2 py-1 text-emerald-700 hover:bg-emerald-50">
+        <div className="mt-2 -ml-2.5 flex gap-1">
+          <Button variant="ghost" size="sm" onClick={startEditing} className="text-primary hover:text-primary">
             {budget ? 'Change limit' : 'Set budget'}
-          </button>
+          </Button>
           {budget && (
-            <button onClick={handleRemove} className="rounded px-2 py-1 text-red-700 hover:bg-red-50">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRemove}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
               Remove
-            </button>
+            </Button>
           )}
         </div>
       )}

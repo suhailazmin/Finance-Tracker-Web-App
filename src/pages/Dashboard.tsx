@@ -1,13 +1,19 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { addMonths, format, startOfMonth } from 'date-fns'
+import { ArrowDownLeft, ArrowUpRight, PiggyBank, Plus, ReceiptText, Wallet } from 'lucide-react'
 import BudgetSummary from '../components/BudgetSummary'
 import GoalsSummary from '../components/GoalsSummary'
 import MonthPicker from '../components/MonthPicker'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
 import StatTile from '../components/StatTile'
+import { ErrorAlert } from '../components/Feedback'
 import CategoryBreakdown from '../components/charts/CategoryBreakdown'
 import DailySpendingChart from '../components/charts/DailySpendingChart'
 import MonthlyTrendChart from '../components/charts/MonthlyTrendChart'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
 import { useMonthlyTotals } from '../hooks/useMonthlyTotals'
@@ -30,64 +36,76 @@ export default function Dashboard() {
   const balance = income - expenses
   const previous = totals.at(-2)
   const previousName = format(addMonths(month, -1), 'MMMM')
+  const monthName = format(month, 'MMMM yyyy')
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <MonthPicker month={month} onChange={setMonth} />
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description={`Your money in ${monthName}`}
+        actions={<MonthPicker month={month} onChange={setMonth} />}
+      />
 
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <ErrorAlert message={error} />}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Income" value={formatRM(income)} keyColor={chartColors.income} />
+        <StatTile label="Income" value={formatRM(income)} icon={ArrowDownLeft} keyColor={chartColors.income} />
         <StatTile
           label="Expenses"
           value={formatRM(expenses)}
+          icon={ArrowUpRight}
           keyColor={chartColors.expenses}
           detail={previous ? spendingChange(expenses, previous.expenses, previousName) : undefined}
         />
-        <StatTile label="Balance" value={formatRM(balance)} />
+        <StatTile label="Balance" value={formatRM(balance)} icon={Wallet} />
         <StatTile
           label="Saved"
           value={income > 0 ? `${Math.round((balance / income) * 100)}%` : '—'}
+          icon={PiggyBank}
           detail="of income this month"
         />
       </div>
 
       {!loading && transactions.length === 0 ? (
-        <Card title="Nothing here yet">
-          <p className="text-sm text-slate-600">
-            No transactions in {format(month, 'MMMM yyyy')}.{' '}
-            <Link to="/transactions" className="text-emerald-700 hover:underline">
-              Add your first one →
-            </Link>
-          </p>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
+            <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+              <ReceiptText className="size-5 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="font-medium">Nothing here yet</p>
+              <p className="text-sm text-muted-foreground">No transactions in {monthName}.</p>
+            </div>
+            <Button asChild>
+              <Link to="/transactions">
+                <Plus /> Add a transaction
+              </Link>
+            </Button>
+          </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card title="Spending by category">
+          <SectionCard title="Spending by category" description="Where your money went">
             <CategoryBreakdown transactions={transactions} categories={categories} />
-          </Card>
-          <Card title="Daily spending">
+          </SectionCard>
+          <SectionCard title="Daily spending" description={monthName}>
             <DailySpendingChart transactions={transactions} month={month} />
-          </Card>
+          </SectionCard>
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Budgets">
+        <SectionCard title="Budgets" description="Closest to their limit first">
           <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} />
-        </Card>
-        <Card title="Savings goals">
+        </SectionCard>
+        <SectionCard title="Savings goals" description="Unfinished goals first">
           <GoalsSummary goals={goals} />
-        </Card>
+        </SectionCard>
       </div>
 
-      <Card title="Income vs expenses, last 6 months">
+      <SectionCard title="Income vs expenses" description="Last 6 months">
         <MonthlyTrendChart totals={totals} />
-      </Card>
+      </SectionCard>
     </div>
   )
 }
@@ -97,13 +115,4 @@ function spendingChange(current: number, previous: number, previousName: string)
   const diff = current - previous
   if (Math.abs(diff) < 0.005) return `Same as ${previousName}`
   return `${formatRM(Math.abs(diff))} ${diff > 0 ? 'more' : 'less'} than ${previousName}`
-}
-
-function Card({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <h2 className="mb-4 font-semibold">{title}</h2>
-      {children}
-    </section>
-  )
 }

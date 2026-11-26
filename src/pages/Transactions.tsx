@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
+import { Pencil, ReceiptText, Trash2 } from 'lucide-react'
+import { ErrorAlert } from '../components/Feedback'
 import MonthPicker from '../components/MonthPicker'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import TransactionForm from '../components/TransactionForm'
 import { useCategories } from '../hooks/useCategories'
 import { useCategoryRules } from '../hooks/useCategoryRules'
@@ -39,35 +45,38 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Transactions</h1>
-        <MonthPicker month={month} onChange={setMonth} />
+      <PageHeader title="Transactions" actions={<MonthPicker month={month} onChange={setMonth} />} />
+
+      <div className="grid grid-cols-3 gap-3">
+        <Stat label="Income" value={formatRM(income)} className="text-primary" />
+        <Stat label="Expenses" value={formatRM(expenses)} className="text-destructive" />
+        <Stat label="Balance" value={formatRM(income - expenses)} />
       </div>
 
-      <div className="grid grid-cols-3 gap-3 text-sm">
-        <Stat label="Income" value={formatRM(income)} className="text-emerald-700" />
-        <Stat label="Expenses" value={formatRM(expenses)} className="text-red-700" />
-        <Stat label="Balance" value={formatRM(income - expenses)} className="text-slate-900" />
-      </div>
-
-      <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-3 font-semibold">Add transaction</h2>
+      <SectionCard title="Add transaction">
         <TransactionForm categories={categories} rules={rules} onSubmit={handleAdd} />
-      </section>
+      </SectionCard>
 
-      <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-        {error && <p className="p-5 text-sm text-red-700">{error}</p>}
-        {!error && loading && transactions.length === 0 && <p className="p-5 text-sm text-slate-500">Loading…</p>}
+      <Card className="gap-0 py-0">
+        {error && <ErrorAlert message={error} className="m-5 w-auto" />}
+        {!error && loading && transactions.length === 0 && (
+          <p className="p-5 text-sm text-muted-foreground">Loading…</p>
+        )}
         {!error && !loading && transactions.length === 0 && (
-          <p className="p-5 text-sm text-slate-500">No transactions in {format(month, 'MMMM yyyy')} yet.</p>
+          <div className="flex flex-col items-center gap-2 p-8 text-center">
+            <ReceiptText className="size-6 text-muted-foreground" aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">No transactions in {format(month, 'MMMM yyyy')} yet.</p>
+          </div>
         )}
 
-        {[...groups].map(([date, items]) => (
+        {[...groups].map(([date, items], i) => (
           <div key={date}>
-            <h3 className="border-b border-slate-100 bg-slate-50 px-5 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+            <h3
+              className={`border-b bg-muted/50 px-5 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase ${i > 0 ? 'border-t' : ''}`}
+            >
               {format(parseISO(date), 'EEE, d MMM')}
             </h3>
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y">
               {items.map((t) =>
                 editingId === t.id ? (
                   <li key={t.id} className="p-5">
@@ -84,22 +93,37 @@ export default function Transactions() {
                     />
                   </li>
                 ) : (
-                  <li key={t.id} className="flex items-center gap-3 px-5 py-3">
+                  <li key={t.id} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{t.description}</p>
+                      <p className="truncate text-sm font-medium">{t.description}</p>
                       <CategoryTag category={t.category_id ? categoryById.get(t.category_id) : undefined} />
                     </div>
-                    <p className={`whitespace-nowrap font-medium ${t.type === 'income' ? 'text-emerald-700' : 'text-red-700'}`}>
+                    <p
+                      className={`text-sm font-semibold whitespace-nowrap tabular-nums ${t.type === 'income' ? 'text-primary' : 'text-foreground'}`}
+                    >
                       {t.type === 'income' ? '+' : '−'}
                       {formatRM(t.amount)}
                     </p>
-                    <div className="flex gap-1 text-sm">
-                      <button onClick={() => setEditingId(t.id)} className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100">
-                        Edit
-                      </button>
-                      <button onClick={() => handleDelete(t)} className="rounded px-2 py-1 text-red-700 hover:bg-red-50">
-                        Delete
-                      </button>
+                    <div className="flex">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingId(t.id)}
+                        aria-label={`Edit ${t.description}`}
+                        title="Edit"
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(t)}
+                        aria-label={`Delete ${t.description}`}
+                        title="Delete"
+                        className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 />
+                      </Button>
                     </div>
                   </li>
                 )
@@ -107,24 +131,24 @@ export default function Transactions() {
             </ul>
           </div>
         ))}
-      </section>
+      </Card>
     </div>
   )
 }
 
-function Stat({ label, value, className }: { label: string; value: string; className: string }) {
+function Stat({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
-      <p className="text-slate-500">{label}</p>
-      <p className={`mt-1 font-semibold sm:text-lg ${className}`}>{value}</p>
-    </div>
+    <Card size="sm" className="gap-1 px-3">
+      <p className="text-xs text-muted-foreground sm:text-sm">{label}</p>
+      <p className={`text-sm font-semibold tabular-nums sm:text-lg ${className ?? ''}`}>{value}</p>
+    </Card>
   )
 }
 
 function CategoryTag({ category }: { category?: Category }) {
   return (
-    <span className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-slate-500">
-      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: category?.color ?? '#cbd5e1' }} />
+    <span className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+      <span className="size-2 rounded-full" style={{ backgroundColor: category?.color ?? '#cbd5e1' }} />
       {category?.name ?? 'Uncategorized'}
     </span>
   )

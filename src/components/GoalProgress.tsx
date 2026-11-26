@@ -12,19 +12,19 @@ export default function GoalProgress({ goal }: { goal: SavingsGoal }) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <span className="tabular-nums text-slate-600">
-          <span className="font-semibold text-slate-900">{formatRM(goal.current_amount)}</span> of{' '}
+        <span className="tabular-nums text-muted-foreground">
+          <span className="font-semibold text-foreground">{formatRM(goal.current_amount)}</span> of{' '}
           {formatRM(goal.target_amount)}
         </span>
-        <span className="tabular-nums text-slate-600">{Math.floor(share * 100)}%</span>
+        <span className="tabular-nums text-muted-foreground">{Math.floor(share * 100)}%</span>
       </div>
-      <div className="mt-1.5 h-2.5 rounded-full bg-slate-100">
+      <div className="mt-1.5 h-2.5 rounded-full bg-muted">
         <div
           className="h-full rounded-full"
           style={{ width: `${Math.min(share, 1) * 100}%`, backgroundColor: chartColors.savings }}
         />
       </div>
-      <p className="mt-1.5 text-xs text-slate-600">{planText(plan, goal)}</p>
+      <p className="mt-1.5 text-xs text-muted-foreground">{planText(plan, goal)}</p>
     </div>
   )
 }

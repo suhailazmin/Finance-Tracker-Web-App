@@ -1,5 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { format } from 'date-fns'
+import { Sparkles } from 'lucide-react'
+import Field from './Field'
+import { FormMessage } from './Feedback'
+import SegmentedControl from './SegmentedControl'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { findRule } from '../lib/categorize'
 import type { Category, CategoryRule, Transaction, TransactionInput, TransactionType } from '../lib/types'
 
@@ -13,9 +20,6 @@ type Props = {
 
 // Positive RM amount with at most 2 decimal places, e.g. 12, 12.5, 12.50
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
-
-const field =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20'
 
 export default function TransactionForm({ categories, rules = [], initial, onSubmit, onCancel }: Props) {
   const [type, setType] = useState<TransactionType>(initial?.type ?? 'expense')
@@ -77,95 +81,68 @@ export default function TransactionForm({ categories, rules = [], initial, onSub
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm">
-        {(['expense', 'income'] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => changeType(t)}
-            className={`rounded-md py-1.5 capitalize ${
-              type === t
-                ? `bg-white font-medium shadow-sm ${t === 'expense' ? 'text-red-700' : 'text-emerald-700'}`
-                : 'text-slate-600'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <SegmentedControl
+        label="Transaction type"
+        value={type}
+        onChange={changeType}
+        options={[
+          { value: 'expense', label: 'Expense', activeClassName: 'text-destructive' },
+          { value: 'income', label: 'Income', activeClassName: 'text-primary' },
+        ]}
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Amount (RM)">
+          <Input inputMode="decimal" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        </Field>
+        <Field label="Date">
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+        </Field>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm">
-          <span className="font-medium">Amount (RM)</span>
-          <input
-            className={`${field} mt-1`}
-            inputMode="decimal"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium">Date</span>
-          <input
-            className={`${field} mt-1`}
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-        </label>
-      </div>
-
-      <label className="block text-sm">
-        <span className="font-medium">Description</span>
-        <input
-          className={`${field} mt-1`}
+      <Field label="Description">
+        <Input
           placeholder={type === 'expense' ? 'e.g. Petronas Jalan Ampang' : 'e.g. October salary'}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={200}
           required
         />
-      </label>
+      </Field>
 
-      <label className="block text-sm">
-        <span className="font-medium">Category</span>
-        <select className={`${field} mt-1`} value={categoryId} onChange={(e) => setChosenCategoryId(e.target.value)}>
-          <option value="">Uncategorized</option>
+      <Field
+        label="Category"
+        hint={
+          isAuto &&
+          rule && (
+            <span className="inline-flex items-center gap-1 text-primary">
+              <Sparkles className="size-3" aria-hidden="true" />
+              Picked automatically because it contains “{rule.keyword}”
+            </span>
+          )
+        }
+      >
+        <NativeSelect className="w-full" value={categoryId} onChange={(e) => setChosenCategoryId(e.target.value)}>
+          <NativeSelectOption value="">Uncategorized</NativeSelectOption>
           {options.map((c) => (
-            <option key={c.id} value={c.id}>
+            <NativeSelectOption key={c.id} value={c.id}>
               {c.name}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
-        {isAuto && rule && (
-          <span className="mt-1 block text-xs text-emerald-700">
-            ✨ Picked automatically because it contains “{rule.keyword}”
-          </span>
-        )}
-      </label>
+        </NativeSelect>
+      </Field>
 
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <FormMessage>{error}</FormMessage>}
 
       <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={saving}>
           {saving ? 'Saving…' : initial ? 'Save changes' : 'Add transaction'}
-        </button>
+        </Button>
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-100"
-          >
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
-          </button>
+          </Button>
         )}
       </div>
     </form>

@@ -1,56 +1,57 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { LayoutDashboard, LogOut, PiggyBank, ReceiptText, Target, UserRound, WandSparkles, Wallet } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const links = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/budgets', label: 'Budgets' },
-  { to: '/goals', label: 'Goals' },
-  { to: '/rules', label: 'Rules' },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/transactions', label: 'Transactions', icon: ReceiptText },
+  { to: '/budgets', label: 'Budgets', icon: Target },
+  { to: '/goals', label: 'Goals', icon: PiggyBank },
+  { to: '/rules', label: 'Rules', icon: WandSparkles },
 ]
+
+const navClass = ({ isActive }: { isActive: boolean }) =>
+  cn(
+    'inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&_svg]:size-4',
+    isActive ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+  )
 
 export default function Layout() {
   const { session } = useAuth()
 
   return (
-    <div className="min-h-svh bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-svh bg-muted/40">
+      <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto max-w-3xl px-4">
           <div className="flex items-center justify-between gap-3 py-3">
-            <span className="font-semibold">Finance Tracker</span>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="hidden text-slate-500 sm:inline">{session?.user.email}</span>
-              <NavLink
-                to="/account"
-                className={({ isActive }) =>
-                  `rounded-lg px-3 py-1.5 ${isActive ? 'bg-emerald-50 font-medium text-emerald-700' : 'text-slate-600 hover:bg-slate-100'}`
-                }
-              >
-                Account
+            <span className="flex items-center gap-2 font-semibold">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Wallet className="size-4" aria-hidden="true" />
+              </span>
+              Finance Tracker
+            </span>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="hidden truncate text-muted-foreground sm:inline">{session?.user.email}</span>
+              {/* icon-only on phones so the header stays one line */}
+              <NavLink to="/account" className={navClass} aria-label="Account">
+                <UserRound aria-hidden="true" />
+                <span className="hidden sm:inline">Account</span>
               </NavLink>
-              <button
-                onClick={() => supabase.auth.signOut()}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-100"
-              >
-                Sign out
-              </button>
+              <Button variant="outline" onClick={() => supabase.auth.signOut()} aria-label="Sign out">
+                <LogOut aria-hidden="true" />
+                <span className="hidden sm:inline">Sign out</span>
+              </Button>
             </div>
           </div>
           {/* Own row so it fits a phone; scrolls sideways if more links are added */}
-          <nav className="-mx-3 flex gap-1 overflow-x-auto pb-2">
-            {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end
-                className={({ isActive }) =>
-                  `whitespace-nowrap rounded-lg px-2 py-1.5 sm:px-3 text-sm ${
-                    isActive ? 'bg-emerald-50 font-medium text-emerald-700' : 'text-slate-600 hover:bg-slate-100'
-                  }`
-                }
-              >
-                {l.label}
+          <nav className="-mx-2.5 flex gap-1 overflow-x-auto pb-2">
+            {links.map(({ to, label, icon: Icon }) => (
+              <NavLink key={to} to={to} end className={navClass}>
+                <Icon aria-hidden="true" />
+                {label}
               </NavLink>
             ))}
           </nav>
