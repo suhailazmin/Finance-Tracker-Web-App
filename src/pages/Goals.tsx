@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { addMonths, startOfMonth } from 'date-fns'
-import { LifeBuoy, Minus, Pencil, Plus, Trash2 } from 'lucide-react'
+import { LifeBuoy, Minus, Pencil, PiggyBank, Plus, Trash2 } from 'lucide-react'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import GoalForm from '../components/GoalForm'
 import PageHeader from '../components/PageHeader'
@@ -32,17 +33,21 @@ export default function Goals() {
 
       {loaded && !hasEmergencyFund && <EmergencyFundSuggestion onCreate={add} />}
 
-      {goals.map((g) => (
-        <GoalCard
-          key={g.id}
-          goal={g}
-          onUpdate={(input) => update(g.id, input)}
-          onContribute={(amount) => contribute(g, amount)}
-          onRemove={() => remove(g.id)}
-        />
-      ))}
+      {goals.length > 0 && (
+        <div className="grid items-start gap-6 md:grid-cols-2">
+          {goals.map((g) => (
+            <GoalCard
+              key={g.id}
+              goal={g}
+              onUpdate={(input) => update(g.id, input)}
+              onContribute={(amount) => contribute(g, amount)}
+              onRemove={() => remove(g.id)}
+            />
+          ))}
+        </div>
+      )}
 
-      <SectionCard title="New goal">
+      <SectionCard title="New goal" icon={Plus}>
         <GoalForm onSubmit={add} />
       </SectionCard>
     </div>
@@ -60,13 +65,10 @@ function EmergencyFundSuggestion({ onCreate }: { onCreate: (input: SavingsGoalIn
 
   return (
     <SectionCard
-      title={
-        <span className="flex items-center gap-2">
-          <LifeBuoy className="size-4 text-primary" aria-hidden="true" />
-          Start an emergency fund
-        </span>
-      }
-      className="ring-primary/30"
+      title="Start an emergency fund"
+      icon={LifeBuoy}
+      tone="orange"
+      className="bg-gradient-to-br from-brand-orange/10 to-card ring-brand-orange/25"
     >
       <p className="text-sm text-muted-foreground">
         An emergency fund covers job loss, medical bills or car repairs without debt. A common guide is{' '}
@@ -151,15 +153,9 @@ function GoalCard({ goal, onUpdate, onContribute, onRemove }: GoalCardProps) {
     }
   }
 
-  async function handleRemove() {
-    if (!window.confirm(`Delete the goal “${goal.name}”? This can’t be undone.`)) return
-    const error = await onRemove()
-    if (error) window.alert(error)
-  }
-
   if (editing) {
     return (
-      <SectionCard title={`Edit “${goal.name}”`}>
+      <SectionCard title={`Edit “${goal.name}”`} icon={Pencil}>
         <GoalForm
           initial={goal}
           onSubmit={async (input) => {
@@ -176,21 +172,32 @@ function GoalCard({ goal, onUpdate, onContribute, onRemove }: GoalCardProps) {
   return (
     <SectionCard
       title={goal.name}
+      icon={PiggyBank}
+      tone="orange"
       actions={
         <div className="-mr-2 flex">
           <Button variant="ghost" size="icon" onClick={() => setEditing(true)} aria-label={`Edit ${goal.name}`} title="Edit">
             <Pencil />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRemove}
-            aria-label={`Delete ${goal.name}`}
-            title="Delete"
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash2 />
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Delete ${goal.name}`}
+                title="Delete"
+                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 />
+              </Button>
+            }
+            icon={Trash2}
+            destructive
+            title={`Delete “${goal.name}”?`}
+            description={`The goal and its ${formatRM(goal.current_amount)} saved so far will be removed from Monetra. This can’t be undone.`}
+            confirmLabel="Delete goal"
+            onConfirm={onRemove}
+          />
         </div>
       }
     >

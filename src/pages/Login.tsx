@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { MailCheck, Wallet } from 'lucide-react'
+import { MailCheck } from 'lucide-react'
+import monetraLogo from '../assets/monetra-logo.png'
 import { FormMessage } from '../components/Feedback'
 import Field from '../components/Field'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -80,19 +81,15 @@ export default function Login() {
   const needsPassword = mode === 'signin' || mode === 'signup'
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
+    <main className="app-backdrop flex min-h-svh items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Wallet className="size-5" aria-hidden="true" />
-          </span>
-          <h1 className="text-2xl font-semibold tracking-tight">Finance Tracker</h1>
-          <p className="text-sm text-muted-foreground">Track your spending in RM.</p>
-        </div>
+        <h1 className="flex justify-center">
+          <img src={monetraLogo} alt="Monetra – Expenses Tracker" width={200} height={204} className="w-50" />
+        </h1>
 
-        <Card className="[--card-spacing:--spacing(6)]">
+        <Card className="shadow-xl shadow-brand-forest/10 [--card-spacing:--spacing(6)]">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">{titles[mode]}</CardTitle>
+            <CardTitle className="text-xl font-extrabold">{titles[mode]}</CardTitle>
             <CardDescription>
               {mode === 'magic'
                 ? 'We’ll email you a link that signs you in.'

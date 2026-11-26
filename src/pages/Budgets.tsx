@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { addMonths, format, startOfMonth } from 'date-fns'
-import { Copy } from 'lucide-react'
+import { Copy, Target, Trash2 } from 'lucide-react'
 import BudgetMeter from '../components/BudgetMeter'
+import CategoryIcon from '../components/CategoryIcon'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import PageHeader from '../components/PageHeader'
 import SectionCard from '../components/SectionCard'
@@ -61,6 +63,7 @@ export default function Budgets() {
       {budgets.length > 0 && (
         <SectionCard
           title="Total"
+          icon={Target}
           actions={
             <p className="text-sm text-muted-foreground tabular-nums">
               <span className="font-semibold text-foreground">{formatRM(totalSpent)}</span> of {formatRM(totalLimit)}
@@ -89,7 +92,7 @@ export default function Budgets() {
         </SectionCard>
       )}
 
-      <Card className="gap-0 divide-y py-0">
+      <div className="grid gap-4 md:grid-cols-2">
         {sorted.map((c) => (
           <BudgetRow
             key={c.id}
@@ -101,7 +104,7 @@ export default function Budgets() {
             onRemove={(b) => remove(b.id)}
           />
         ))}
-      </Card>
+      </div>
     </div>
   )
 }
@@ -141,17 +144,11 @@ function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps
     else setEditing(false)
   }
 
-  async function handleRemove() {
-    if (!budget || !window.confirm(`Remove the ${category.name} budget?`)) return
-    const message = await onRemove(budget)
-    if (message) window.alert(message)
-  }
-
   return (
-    <div className="p-5">
+    <Card className="gap-0 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span className="flex items-center gap-1.5 text-sm font-medium">
-          <span className="size-2 rounded-full" style={{ backgroundColor: category.color ?? '#64748b' }} />
+        <span className="flex items-center gap-2.5 text-sm font-bold">
+          <CategoryIcon category={category} className="size-9" />
           {category.name}
         </span>
         <span className="text-sm text-muted-foreground tabular-nums">
@@ -197,17 +194,22 @@ function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps
             {budget ? 'Change limit' : 'Set budget'}
           </Button>
           {budget && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRemove}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              Remove
-            </Button>
+            <ConfirmDialog
+              trigger={
+                <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                  Remove
+                </Button>
+              }
+              icon={Trash2}
+              destructive
+              title={`Remove the ${category.name} budget?`}
+              description={`The ${formatRM(budget.limit_amount)} monthly limit will be removed. Your transactions are not affected.`}
+              confirmLabel="Remove budget"
+              onConfirm={() => onRemove(budget)}
+            />
           )}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

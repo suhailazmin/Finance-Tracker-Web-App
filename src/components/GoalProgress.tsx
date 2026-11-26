@@ -18,7 +18,7 @@ export default function GoalProgress({ goal }: { goal: SavingsGoal }) {
         </span>
         <span className="tabular-nums text-muted-foreground">{Math.floor(share * 100)}%</span>
       </div>
-      <div className="mt-1.5 h-2.5 rounded-full bg-muted">
+      <div className="mt-1.5 h-2.5 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${chartColors.savings} 15%, transparent)` }}>
         <div
           className="h-full rounded-full"
           style={{ width: `${Math.min(share, 1) * 100}%`, backgroundColor: chartColors.savings }}
