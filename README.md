@@ -8,6 +8,12 @@
 </p>
 
 <p align="center">
+  <a href="https://finance-tracker-web-app-2msr.vercel.app/"><strong>Live demo →</strong></a>
+  <br />
+  <sub>Create a free account to try it. Your data is private to your account.</sub>
+</p>
+
+<p align="center">
   <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: balance card, income and expense tiles, cashflow chart and spending by category" width="900" />
 </p>
 
