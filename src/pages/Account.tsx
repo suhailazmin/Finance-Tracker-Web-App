@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { CircleCheck } from 'lucide-react'
+import { CircleCheck, KeyRound, UserRound } from 'lucide-react'
 import { FormMessage } from '../components/Feedback'
 import Field from '../components/Field'
 import PageHeader from '../components/PageHeader'
@@ -45,10 +45,10 @@ export default function Account() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl space-y-6">
       <PageHeader title="Account" />
 
-      <SectionCard title="Signed in as" description={user?.email}>
+      <SectionCard title="Signed in as" description={user?.email} icon={UserRound}>
         {providers && (
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             Sign-in methods:
@@ -63,6 +63,8 @@ export default function Account() {
 
       <SectionCard
         title="Set or change password"
+        icon={KeyRound}
+        tone="orange"
         description="After this you can sign in with your email and password, without waiting for an email link."
       >
         <form onSubmit={handleSubmit} className="space-y-4 sm:max-w-sm">

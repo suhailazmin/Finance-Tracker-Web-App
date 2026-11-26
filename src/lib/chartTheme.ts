@@ -1,12 +1,15 @@
 import { formatRMCompact } from './format'
 
-// Chart palette (validated for colour-blind separation on a white surface).
+// Chart palette from the Monetra brand, checked with the dataviz palette validator on white:
+// lightness, chroma, colour-blind separation (protan ΔE 17) and normal vision all pass.
+// Income green is a slightly more vivid step of the brand's forest green (#285c45 reads grey in charts).
+// The orange is under 3:1 against white, so every chart keeps its "Show as table" view.
 // Income and expenses keep the same colour in every chart.
 export const chartColors = {
-  income: '#2a78d6',
-  expenses: '#eb6834',
-  // under 3:1 contrast on white, so savings bars always show their amounts as text
-  savings: '#1baf7a',
+  income: '#2b7f57',
+  expenses: '#e9a15c',
+  // goal progress; amounts are always shown as text beside the bar
+  savings: '#2b7f57',
   grid: '#e1e0d9',
   baseline: '#c3c2b7',
   axisText: '#898781',

@@ -16,7 +16,11 @@ export default function BudgetMeter({ spent, limit, pace }: Props) {
 
   return (
     <div>
-      <div className="relative h-2.5 rounded-full bg-muted" title={`${Math.round(used * 100)}% used`}>
+      <div
+        className="relative h-2.5 rounded-full"
+        style={{ backgroundColor: `color-mix(in srgb, ${style.color} 15%, transparent)` }}
+        title={`${Math.round(used * 100)}% used`}
+      >
         <div
           className="h-full rounded-full"
           style={{ width: `${Math.min(used, 1) * 100}%`, backgroundColor: style.color }}

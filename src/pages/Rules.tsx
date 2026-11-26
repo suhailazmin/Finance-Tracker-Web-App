@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { ArrowRight, ArrowUp, X } from 'lucide-react'
+import { ArrowRight, ArrowUp, FlaskConical, History, ListChecks, Plus, Trash2, WandSparkles, X } from 'lucide-react'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import Field from '../components/Field'
 import PageHeader from '../components/PageHeader'
@@ -35,19 +36,22 @@ export default function Rules() {
       />
       {error && <ErrorAlert message={error} />}
 
-      <SectionCard title="Try it" description="See which rule a description would match">
-        <RuleTester rules={rules} categoryById={categoryById} />
-      </SectionCard>
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <SectionCard title="Add a rule" icon={Plus}>
+          <AddRuleForm rules={rules} categories={categories} onAdd={add} />
+        </SectionCard>
 
-      <SectionCard title="Add a rule">
-        <AddRuleForm rules={rules} categories={categories} onAdd={add} />
-      </SectionCard>
+        <div className="grid gap-6">
+          <SectionCard title="Try it" description="See which rule a description would match" icon={FlaskConical} tone="orange">
+            <RuleTester rules={rules} categoryById={categoryById} />
+          </SectionCard>
+          <SectionCard title="Categorize past transactions" icon={History} tone="orange">
+            <ApplyToPast rules={rules} categoryById={categoryById} />
+          </SectionCard>
+        </div>
+      </div>
 
-      <SectionCard title="Categorize past transactions">
-        <ApplyToPast rules={rules} categoryById={categoryById} />
-      </SectionCard>
-
-      <SectionCard title="Your rules" actions={<Badge variant="secondary">{rules.length}</Badge>}>
+      <SectionCard title="Your rules" icon={ListChecks} actions={<Badge variant="secondary">{rules.length}</Badge>}>
         <RuleList rules={rules} categories={categories} onRemove={remove} />
       </SectionCard>
     </div>
@@ -216,9 +220,14 @@ function ApplyToPast({ rules, categoryById }: { rules: CategoryRule[]; categoryB
         <strong className="text-foreground">{matches.length}</strong> match a rule.
       </p>
       {matches.length > 0 && (
-        <Button onClick={apply} disabled={busy}>
-          {busy ? 'Updating…' : `Categorize ${matches.length} now`}
-        </Button>
+        <ConfirmDialog
+          trigger={<Button disabled={busy}>{busy ? 'Updating…' : `Categorize ${matches.length} now`}</Button>}
+          icon={WandSparkles}
+          title={`Categorize ${matches.length} transaction${matches.length === 1 ? '' : 's'}?`}
+          description="Each matching uncategorized transaction gets the category from its rule. You can still change any of them afterwards."
+          confirmLabel="Categorize"
+          onConfirm={apply}
+        />
       )}
       {message && <FormMessage ok>{message}</FormMessage>}
     </div>
@@ -234,12 +243,6 @@ function RuleList({
   categories: Category[]
   onRemove: (id: string) => Promise<string | undefined>
 }) {
-  async function handleRemove(rule: CategoryRule) {
-    if (!window.confirm(`Delete the rule “${rule.keyword}”?`)) return
-    const error = await onRemove(rule.id)
-    if (error) window.alert(error)
-  }
-
   const groups = categories
     .map((c) => ({ category: c, rules: rules.filter((r) => r.category_id === c.id) }))
     .filter((g) => g.rules.length > 0)
@@ -260,15 +263,24 @@ function RuleList({
                     <title>Checked before other rules</title>
                   </ArrowUp>
                 )}
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={() => handleRemove(r)}
-                  className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={`Delete rule ${r.keyword}`}
-                >
-                  <X />
-                </Button>
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`Delete rule ${r.keyword}`}
+                    >
+                      <X />
+                    </Button>
+                  }
+                  icon={Trash2}
+                  destructive
+                  title={`Delete the rule “${r.keyword}”?`}
+                  description={`New transactions containing “${r.keyword}” won’t be categorized as ${g.category.name} any more. Past transactions keep their category.`}
+                  confirmLabel="Delete rule"
+                  onConfirm={() => onRemove(r.id)}
+                />
               </li>
             ))}
           </ul>
