@@ -1,14 +1,19 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { ArrowRight, ArrowUp, X } from 'lucide-react'
+import { ErrorAlert, FormMessage } from '../components/Feedback'
+import Field from '../components/Field'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from '@/components/ui/native-select'
 import { useCategories } from '../hooks/useCategories'
 import { useCategoryRules } from '../hooks/useCategoryRules'
 import { findRule, normalizeKeyword } from '../lib/categorize'
 import { supabase } from '../lib/supabase'
 import type { Category, CategoryRule } from '../lib/types'
-
-const field =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20'
-const button =
-  'rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60'
 
 type Uncategorized = { id: string; description: string; type: string }
 
@@ -19,30 +24,32 @@ export default function Rules() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Auto-categorization</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          When a description contains a keyword, its category is picked for you. Keywords match whole words (so DIGI
-          doesn’t match “Digital”) and ignore upper/lower case.
-        </p>
-      </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      <PageHeader
+        title="Auto-categorization"
+        description={
+          <>
+            When a description contains a keyword, its category is picked for you. Keywords match whole words (so DIGI
+            doesn’t match “Digital”) and ignore upper/lower case.
+          </>
+        }
+      />
+      {error && <ErrorAlert message={error} />}
 
-      <Card title="Try it">
+      <SectionCard title="Try it" description="See which rule a description would match">
         <RuleTester rules={rules} categoryById={categoryById} />
-      </Card>
+      </SectionCard>
 
-      <Card title="Add a rule">
+      <SectionCard title="Add a rule">
         <AddRuleForm rules={rules} categories={categories} onAdd={add} />
-      </Card>
+      </SectionCard>
 
-      <Card title="Categorize past transactions">
+      <SectionCard title="Categorize past transactions">
         <ApplyToPast rules={rules} categoryById={categoryById} />
-      </Card>
+      </SectionCard>
 
-      <Card title={`Your rules (${rules.length})`}>
+      <SectionCard title="Your rules" actions={<Badge variant="secondary">{rules.length}</Badge>}>
         <RuleList rules={rules} categories={categories} onRemove={remove} />
-      </Card>
+      </SectionCard>
     </div>
   )
 }
@@ -54,20 +61,22 @@ function RuleTester({ rules, categoryById }: { rules: CategoryRule[]; categoryBy
 
   return (
     <>
-      <input
-        className={field}
+      <Input
         placeholder="Type a description, e.g. GRABFOOD* NASI LEMAK"
         value={text}
         onChange={(e) => setText(e.target.value)}
+        aria-label="Description to test"
       />
       {text.trim() && (
-        <p className="mt-2 text-sm">
+        <p className="mt-3 flex flex-wrap items-center gap-1.5 text-sm" aria-live="polite">
           {category ? (
             <>
-              → <CategoryName category={category} /> <span className="text-slate-500">(keyword “{rule.keyword}”)</span>
+              <ArrowRight className="size-4 text-muted-foreground" aria-hidden="true" />
+              <CategoryName category={category} />
+              <span className="text-muted-foreground">(keyword “{rule.keyword}”)</span>
             </>
           ) : (
-            <span className="text-slate-500">No rule matches. It would be saved as Uncategorized.</span>
+            <span className="text-muted-foreground">No rule matches. It would be saved as Uncategorized.</span>
           )}
         </p>
       )}
@@ -110,52 +119,49 @@ function AddRuleForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm">
-          <span className="font-medium">Keyword</span>
-          <input
-            className={`${field} mt-1`}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Keyword">
+          <Input
             placeholder="e.g. NASI KANDAR"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             maxLength={50}
             required
           />
-        </label>
-        <label className="block text-sm">
-          <span className="font-medium">Category</span>
-          <select className={`${field} mt-1`} value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
-            <option value="" disabled>
+        </Field>
+        <Field label="Category">
+          <NativeSelect className="w-full" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+            <NativeSelectOption value="" disabled>
               Choose…
-            </option>
+            </NativeSelectOption>
             {(['expense', 'income'] as const).map((type) => (
-              <optgroup key={type} label={type === 'expense' ? 'Expenses' : 'Income'}>
+              <NativeSelectOptGroup key={type} label={type === 'expense' ? 'Expenses' : 'Income'}>
                 {categories
                   .filter((c) => c.type === type)
                   .map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <NativeSelectOption key={c.id} value={c.id}>
                       {c.name}
-                    </option>
+                    </NativeSelectOption>
                   ))}
-              </optgroup>
+              </NativeSelectOptGroup>
             ))}
-          </select>
-        </label>
+          </NativeSelect>
+        </Field>
       </div>
-      <label className="flex items-start gap-2 text-sm text-slate-700">
-        <input type="checkbox" className="mt-1" checked={first} onChange={(e) => setFirst(e.target.checked)} />
+      <label className="flex items-start gap-2.5 text-sm">
+        <Checkbox className="mt-0.5" checked={first} onCheckedChange={(v) => setFirst(v === true)} />
         <span>
           Check this rule before others
-          <span className="block text-xs text-slate-500">
+          <span className="block text-xs text-muted-foreground">
             For specific keywords that overlap a general one, like GRABFOOD (Food) vs GRAB (Transport).
           </span>
         </span>
       </label>
-      <button type="submit" disabled={busy} className={button}>
+      <Button type="submit" disabled={busy}>
         {busy ? 'Adding…' : 'Add rule'}
-      </button>
-      {message && <p className={`text-sm ${message.ok ? 'text-green-700' : 'text-red-700'}`}>{message.text}</p>}
+      </Button>
+      {message && <FormMessage ok={message.ok}>{message.text}</FormMessage>}
     </form>
   )
 }
@@ -201,20 +207,20 @@ function ApplyToPast({ rules, categoryById }: { rules: CategoryRule[]; categoryB
     setVersion((v) => v + 1)
   }
 
-  if (rows === null) return <p className="text-sm text-slate-500">Checking…</p>
+  if (rows === null) return <p className="text-sm text-muted-foreground">Checking…</p>
 
   return (
     <div className="space-y-3 text-sm">
-      <p className="text-slate-600">
+      <p className="text-muted-foreground">
         {rows.length} uncategorized transaction{rows.length === 1 ? '' : 's'}, of which{' '}
-        <strong>{matches.length}</strong> match a rule.
+        <strong className="text-foreground">{matches.length}</strong> match a rule.
       </p>
       {matches.length > 0 && (
-        <button onClick={apply} disabled={busy} className={button}>
+        <Button onClick={apply} disabled={busy}>
           {busy ? 'Updating…' : `Categorize ${matches.length} now`}
-        </button>
+        </Button>
       )}
-      {message && <p className="text-green-700">{message}</p>}
+      {message && <FormMessage ok>{message}</FormMessage>}
     </div>
   )
 }
@@ -238,7 +244,7 @@ function RuleList({
     .map((c) => ({ category: c, rules: rules.filter((r) => r.category_id === c.id) }))
     .filter((g) => g.rules.length > 0)
 
-  if (groups.length === 0) return <p className="text-sm text-slate-500">No rules yet.</p>
+  if (groups.length === 0) return <p className="text-sm text-muted-foreground">No rules yet.</p>
 
   return (
     <div className="space-y-4">
@@ -247,20 +253,22 @@ function RuleList({
           <CategoryName category={g.category} />
           <ul className="mt-2 flex flex-wrap gap-2">
             {g.rules.map((r) => (
-              <li key={r.id} className="flex items-center gap-1 rounded-full bg-slate-100 py-1 pl-3 pr-1 text-sm">
+              <li key={r.id} className="flex items-center gap-1 rounded-full border bg-muted/50 py-0.5 pr-0.5 pl-3 text-sm">
                 {r.keyword}
                 {r.priority > 0 && (
-                  <span className="text-xs text-slate-500" title="Checked before other rules">
-                    ↑
-                  </span>
+                  <ArrowUp className="size-3.5 text-muted-foreground" aria-label="Checked before other rules">
+                    <title>Checked before other rules</title>
+                  </ArrowUp>
                 )}
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={() => handleRemove(r)}
-                  className="ml-1 h-6 w-6 rounded-full text-slate-500 hover:bg-slate-200 hover:text-red-700"
+                  className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   aria-label={`Delete rule ${r.keyword}`}
                 >
-                  ×
-                </button>
+                  <X />
+                </Button>
               </li>
             ))}
           </ul>
@@ -276,14 +284,5 @@ function CategoryName({ category }: { category: Category }) {
       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: category.color ?? '#64748b' }} />
       {category.name}
     </span>
-  )
-}
-
-function Card({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <h2 className="mb-3 font-semibold">{title}</h2>
-      {children}
-    </section>
   )
 }

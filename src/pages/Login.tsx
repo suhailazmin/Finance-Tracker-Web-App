@@ -1,5 +1,13 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
+import { MailCheck, Wallet } from 'lucide-react'
+import { FormMessage } from '../components/Feedback'
+import Field from '../components/Field'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 
@@ -11,9 +19,6 @@ const titles: Record<Mode, string> = {
   magic: 'Email me a sign-in link',
   forgot: 'Reset password',
 }
-
-const field =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20'
 
 export default function Login() {
   const { session } = useAuth()
@@ -75,86 +80,98 @@ export default function Login() {
   const needsPassword = mode === 'signin' || mode === 'signup'
 
   return (
-    <main className="min-h-svh bg-slate-50 text-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-sm w-full rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h1 className="text-2xl font-semibold">Finance Tracker</h1>
-        <p className="mt-1 text-sm text-slate-600">Track your spending in RM.</p>
-
-        <button
-          type="button"
-          onClick={signInWithGoogle}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-3 py-2 font-medium hover:bg-slate-50"
-        >
-          <GoogleLogo />
-          Continue with Google
-        </button>
-
-        <div className="my-5 flex items-center gap-3 text-xs text-slate-400">
-          <span className="h-px flex-1 bg-slate-200" />
-          or
-          <span className="h-px flex-1 bg-slate-200" />
+    <main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Wallet className="size-5" aria-hidden="true" />
+          </span>
+          <h1 className="text-2xl font-semibold tracking-tight">Finance Tracker</h1>
+          <p className="text-sm text-muted-foreground">Track your spending in RM.</p>
         </div>
 
-        <h2 className="font-medium">{titles[mode]}</h2>
-        <form onSubmit={handleSubmit} className="mt-3 space-y-3">
-          <label className="block text-sm">
-            <span className="font-medium">Email</span>
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className={`${field} mt-1`}
-            />
-          </label>
+        <Card className="[--card-spacing:--spacing(6)]">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">{titles[mode]}</CardTitle>
+            <CardDescription>
+              {mode === 'magic'
+                ? 'We’ll email you a link that signs you in.'
+                : mode === 'forgot'
+                  ? 'We’ll email you a link to choose a new password.'
+                  : mode === 'signup'
+                    ? 'Start tracking in a minute.'
+                    : 'Welcome back.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <Button type="button" variant="outline" size="lg" className="w-full" onClick={signInWithGoogle}>
+              <GoogleLogo />
+              Continue with Google
+            </Button>
 
-          {needsPassword && (
-            <label className="block text-sm">
-              <span className="font-medium">Password</span>
-              <input
-                type="password"
-                required
-                minLength={8}
-                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`${field} mt-1`}
-              />
-              {mode === 'signup' && <span className="mt-1 block text-xs text-slate-500">At least 8 characters.</span>}
-            </label>
-          )}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <Separator className="flex-1" />
+              or
+              <Separator className="flex-1" />
+            </div>
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-lg bg-emerald-600 px-3 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            {busy ? 'Please wait…' : titles[mode]}
-          </button>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Field label="Email">
+                <Input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </Field>
 
-          {error && <p className="text-sm text-red-700">{error}</p>}
-          {notice && <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">{notice}</p>}
-        </form>
+              {needsPassword && (
+                <Field label="Password" hint={mode === 'signup' ? 'At least 8 characters.' : undefined}>
+                  <Input
+                    type="password"
+                    required
+                    minLength={8}
+                    autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </Field>
+              )}
 
-        <div className="mt-5 space-y-1 text-sm text-slate-600">
-          {mode === 'signin' ? (
-            <>
-              <p>
-                <LinkButton onClick={() => switchMode('forgot')}>Forgot password?</LinkButton> ·{' '}
-                <LinkButton onClick={() => switchMode('magic')}>Email me a link instead</LinkButton>
-              </p>
-              <p>
-                No account yet? <LinkButton onClick={() => switchMode('signup')}>Create one</LinkButton>
-              </p>
-            </>
-          ) : (
-            <p>
-              <LinkButton onClick={() => switchMode('signin')}>← Back to sign in with password</LinkButton>
-            </p>
-          )}
-        </div>
+              <Button type="submit" size="lg" disabled={busy} className="w-full">
+                {busy ? 'Please wait…' : titles[mode]}
+              </Button>
+
+              {error && <FormMessage>{error}</FormMessage>}
+              {notice && (
+                <Alert className="border-primary/30 bg-primary/5">
+                  <MailCheck className="text-primary" />
+                  <AlertDescription className="text-foreground">{notice}</AlertDescription>
+                </Alert>
+              )}
+            </form>
+
+            <div className="space-y-1 text-center text-sm text-muted-foreground">
+              {mode === 'signin' ? (
+                <>
+                  <p>
+                    <LinkButton onClick={() => switchMode('forgot')}>Forgot password?</LinkButton> ·{' '}
+                    <LinkButton onClick={() => switchMode('magic')}>Email me a link instead</LinkButton>
+                  </p>
+                  <p>
+                    No account yet? <LinkButton onClick={() => switchMode('signup')}>Create one</LinkButton>
+                  </p>
+                </>
+              ) : (
+                <p>
+                  <LinkButton onClick={() => switchMode('signin')}>← Back to sign in with password</LinkButton>
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </main>
   )
@@ -170,7 +187,7 @@ function friendlyError(message: string) {
 
 function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="text-emerald-700 hover:underline">
+    <button type="button" onClick={onClick} className="font-medium text-primary underline-offset-4 hover:underline">
       {children}
     </button>
   )
@@ -178,7 +195,7 @@ function LinkButton({ onClick, children }: { onClick: () => void; children: Reac
 
 function GoogleLogo() {
   return (
-    <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
+    <svg viewBox="0 0 48 48" className="size-5" aria-hidden="true">
       <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
       <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
       <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />

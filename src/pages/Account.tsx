@@ -1,9 +1,14 @@
 import { useState, type FormEvent } from 'react'
+import { CircleCheck } from 'lucide-react'
+import { FormMessage } from '../components/Feedback'
+import Field from '../components/Field'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
-
-const field =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20'
 
 const providerNames: Record<string, string> = { email: 'Email', google: 'Google' }
 
@@ -41,60 +46,58 @@ export default function Account() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Account</h1>
+      <PageHeader title="Account" />
 
-      <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 text-sm">
-        <p className="text-slate-500">Signed in as</p>
-        <p className="font-medium">{user?.email}</p>
+      <SectionCard title="Signed in as" description={user?.email}>
         {providers && (
-          <p className="mt-3 text-slate-500">
-            Sign-in methods: {providers.map((p) => providerNames[p] ?? p).join(', ')}
-          </p>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            Sign-in methods:
+            {providers.map((p) => (
+              <Badge key={p} variant="secondary">
+                {providerNames[p] ?? p}
+              </Badge>
+            ))}
+          </div>
         )}
-      </section>
+      </SectionCard>
 
-      <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="font-semibold">Set or change password</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          After this you can sign in with your email and password, without waiting for an email link.
-        </p>
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3 sm:max-w-sm">
-          <label className="block text-sm">
-            <span className="font-medium">New password</span>
-            <input
+      <SectionCard
+        title="Set or change password"
+        description="After this you can sign in with your email and password, without waiting for an email link."
+      >
+        <form onSubmit={handleSubmit} className="space-y-4 sm:max-w-sm">
+          <Field label="New password" hint="At least 8 characters.">
+            <Input
               type="password"
               required
               minLength={8}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`${field} mt-1`}
             />
-            <span className="mt-1 block text-xs text-slate-500">At least 8 characters.</span>
-          </label>
-          <label className="block text-sm">
-            <span className="font-medium">Confirm new password</span>
-            <input
+          </Field>
+          <Field label="Confirm new password">
+            <Input
               type="password"
               required
               minLength={8}
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className={`${field} mt-1`}
             />
-          </label>
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
+          </Field>
+          <Button type="submit" disabled={busy}>
             {busy ? 'Saving…' : 'Save password'}
-          </button>
-          {error && <p className="text-sm text-red-700">{error}</p>}
-          {saved && <p className="text-sm text-green-700">✅ Password saved. You can now sign in with it.</p>}
+          </Button>
+          {error && <FormMessage>{error}</FormMessage>}
+          {saved && (
+            <FormMessage ok className="flex items-center gap-1.5">
+              <CircleCheck className="size-4" aria-hidden="true" />
+              Password saved. You can now sign in with it.
+            </FormMessage>
+          )}
         </form>
-      </section>
+      </SectionCard>
     </div>
   )
 }

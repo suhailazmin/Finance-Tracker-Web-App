@@ -23,25 +23,25 @@ export default function CategoryBreakdown({ transactions, categories }: Props) {
   const total = rows.reduce((sum, r) => sum + r.amount, 0)
   const max = rows[0]?.amount ?? 0
 
-  if (rows.length === 0) return <p className="text-sm text-slate-500">No spending this month.</p>
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No spending this month.</p>
 
   return (
     <ul className="space-y-3">
       {rows.map((r) => (
         <li key={r.id} className="text-sm" title={`${r.category?.name ?? 'Uncategorized'}: ${formatRM(r.amount)}`}>
           <div className="flex items-baseline justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-slate-700">
+            <span className="flex items-center gap-1.5 text-foreground">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: r.category?.color ?? '#cbd5e1' }} />
               {r.category?.name ?? 'Uncategorized'}
             </span>
-            <span className="whitespace-nowrap tabular-nums text-slate-900">
+            <span className="whitespace-nowrap tabular-nums text-foreground">
               {formatRM(r.amount)}
-              <span className="ml-2 inline-block w-10 text-right text-slate-500">
+              <span className="ml-2 inline-block w-10 text-right text-muted-foreground">
                 {formatShare(r.amount / total)}
               </span>
             </span>
           </div>
-          <div className="mt-1 h-2.5 rounded-r bg-slate-100">
+          <div className="mt-1 h-2.5 rounded-r bg-muted">
             <div
               className="h-full rounded-r"
               style={{ width: `${(r.amount / max) * 100}%`, backgroundColor: chartColors.expenses }}

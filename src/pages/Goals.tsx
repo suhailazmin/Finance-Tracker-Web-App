@@ -1,6 +1,13 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent } from 'react'
 import { addMonths, startOfMonth } from 'date-fns'
+import { LifeBuoy, Minus, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ErrorAlert, FormMessage } from '../components/Feedback'
 import GoalForm from '../components/GoalForm'
+import PageHeader from '../components/PageHeader'
+import SectionCard from '../components/SectionCard'
+import SegmentedControl from '../components/SegmentedControl'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import GoalProgress from '../components/GoalProgress'
 import { useMonthlyTotals } from '../hooks/useMonthlyTotals'
 import { useSavingsGoals } from '../hooks/useSavingsGoals'
@@ -17,11 +24,11 @@ export default function Goals() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Savings goals</h1>
-        <p className="mt-1 text-sm text-slate-600">Track what you’re saving towards and how much to put aside each month.</p>
-      </div>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      <PageHeader
+        title="Savings goals"
+        description="Track what you’re saving towards and how much to put aside each month."
+      />
+      {error && <ErrorAlert message={error} />}
 
       {loaded && !hasEmergencyFund && <EmergencyFundSuggestion onCreate={add} />}
 
@@ -35,9 +42,9 @@ export default function Goals() {
         />
       ))}
 
-      <Card title="New goal">
+      <SectionCard title="New goal">
         <GoalForm onSubmit={add} />
-      </Card>
+      </SectionCard>
     </div>
   )
 }
@@ -52,43 +59,49 @@ function EmergencyFundSuggestion({ onCreate }: { onCreate: (input: SavingsGoalIn
   const target = roundUpTo100(average * months)
 
   return (
-    <Card title="🛟 Start an emergency fund">
-      <p className="text-sm text-slate-600">
+    <SectionCard
+      title={
+        <span className="flex items-center gap-2">
+          <LifeBuoy className="size-4 text-primary" aria-hidden="true" />
+          Start an emergency fund
+        </span>
+      }
+      className="ring-primary/30"
+    >
+      <p className="text-sm text-muted-foreground">
         An emergency fund covers job loss, medical bills or car repairs without debt. A common guide is{' '}
-        <strong>3–6 months of expenses</strong>.
+        <strong className="text-foreground">3–6 months of expenses</strong>.
       </p>
 
       {loading ? (
-        <p className="mt-3 text-sm text-slate-500">Working out your average spending…</p>
+        <p className="mt-3 text-sm text-muted-foreground">Working out your average spending…</p>
       ) : average > 0 ? (
         <div className="mt-4 space-y-3">
-          <p className="text-sm text-slate-600">
-            You spent about <strong className="text-slate-900">{formatRM(average)}</strong> a month recently.
+          <p className="text-sm text-muted-foreground">
+            You spent about <strong className="text-foreground">{formatRM(average)}</strong> a month recently.
           </p>
-          <div className="inline-grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm">
-            {([3, 6] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMonths(m)}
-                className={`rounded-md px-3 py-1.5 ${months === m ? 'bg-white font-medium shadow-sm' : 'text-slate-600'}`}
-              >
-                {m} months
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            label="Months of expenses"
+            className="inline-grid"
+            value={months}
+            onChange={setMonths}
+            options={[
+              { value: 3, label: '3 months' },
+              { value: 6, label: '6 months' },
+            ]}
+          />
           <p className="text-sm">
-            Suggested target: <strong className="text-lg">{formatRM(target)}</strong>
+            Suggested target: <strong className="text-lg tabular-nums">{formatRM(target)}</strong>
           </p>
         </div>
       ) : (
-        <p className="mt-3 text-sm text-slate-500">
+        <p className="mt-3 text-sm text-muted-foreground">
           Add a few months of transactions and you’ll get a suggested target based on your spending.
         </p>
       )}
 
       {showForm ? (
-        <div className="mt-4 border-t border-slate-100 pt-4">
+        <div className="mt-4 border-t pt-4">
           <GoalForm
             defaults={{ name: EMERGENCY_FUND_NAME, target_amount: target || undefined }}
             onSubmit={onCreate}
@@ -96,14 +109,11 @@ function EmergencyFundSuggestion({ onCreate }: { onCreate: (input: SavingsGoalIn
           />
         </div>
       ) : (
-        <button
-          onClick={() => setShowForm(true)}
-          className="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-        >
+        <Button onClick={() => setShowForm(true)} className="mt-4">
           Set up emergency fund
-        </button>
+        </Button>
       )}
-    </Card>
+    </SectionCard>
   )
 }
 
@@ -149,7 +159,7 @@ function GoalCard({ goal, onUpdate, onContribute, onRemove }: GoalCardProps) {
 
   if (editing) {
     return (
-      <Card title={`Edit “${goal.name}”`}>
+      <SectionCard title={`Edit “${goal.name}”`}>
         <GoalForm
           initial={goal}
           onSubmit={async (input) => {
@@ -159,64 +169,56 @@ function GoalCard({ goal, onUpdate, onContribute, onRemove }: GoalCardProps) {
           }}
           onCancel={() => setEditing(false)}
         />
-      </Card>
+      </SectionCard>
     )
   }
 
   return (
-    <Card
+    <SectionCard
       title={goal.name}
       actions={
-        <div className="flex gap-1 text-sm">
-          <button onClick={() => setEditing(true)} className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100">
-            Edit
-          </button>
-          <button onClick={handleRemove} className="rounded px-2 py-1 text-red-700 hover:bg-red-50">
-            Delete
-          </button>
+        <div className="-mr-2 flex">
+          <Button variant="ghost" size="icon" onClick={() => setEditing(true)} aria-label={`Edit ${goal.name}`} title="Edit">
+            <Pencil />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRemove}
+            aria-label={`Delete ${goal.name}`}
+            title="Delete"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 />
+          </Button>
         </div>
       }
     >
       <GoalProgress goal={goal} />
       <form onSubmit={(e) => move(e, 1)} className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-sm text-slate-600">RM</span>
-        <input
+        <span className="text-sm text-muted-foreground">RM</span>
+        <Input
           inputMode="decimal"
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           aria-label={`Amount for ${goal.name}`}
-          className="w-28 rounded-lg border border-slate-300 px-3 py-1.5 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20"
+          className="w-28"
         />
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={busy}>
+          <Plus />
           Add savings
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={(e) => move(e, -1)}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-60"
-        >
+        </Button>
+        <Button type="button" variant="outline" disabled={busy} onClick={(e) => move(e, -1)}>
+          <Minus />
           Withdraw
-        </button>
-        {message && <p className={`w-full text-sm ${message.ok ? 'text-green-700' : 'text-red-700'}`}>{message.text}</p>}
+        </Button>
+        {message && (
+          <FormMessage ok={message.ok} className="w-full">
+            {message.text}
+          </FormMessage>
+        )}
       </form>
-    </Card>
-  )
-}
-
-function Card({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
-  return (
-    <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h2 className="font-semibold">{title}</h2>
-        {actions}
-      </div>
-      {children}
-    </section>
+    </SectionCard>
   )
 }

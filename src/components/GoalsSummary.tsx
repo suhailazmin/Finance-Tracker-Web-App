@@ -6,9 +6,9 @@ import type { SavingsGoal } from '../lib/types'
 export default function GoalsSummary({ goals, limit = 3 }: { goals: SavingsGoal[]; limit?: number }) {
   if (goals.length === 0) {
     return (
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         No savings goals yet.{' '}
-        <Link to="/goals" className="text-emerald-700 hover:underline">
+        <Link to="/goals" className="font-medium text-primary hover:underline">
           Start an emergency fund →
         </Link>
       </p>
@@ -23,11 +23,11 @@ export default function GoalsSummary({ goals, limit = 3 }: { goals: SavingsGoal[
     <div className="space-y-5">
       {sorted.slice(0, limit).map((g) => (
         <div key={g.id}>
-          <p className="mb-1 text-sm font-medium text-slate-800">{g.name}</p>
+          <p className="mb-1 text-sm font-medium text-foreground">{g.name}</p>
           <GoalProgress goal={g} />
         </div>
       ))}
-      <Link to="/goals" className="inline-block text-sm text-emerald-700 hover:underline">
+      <Link to="/goals" className="inline-block text-sm font-medium text-primary hover:underline">
         {goals.length > limit ? `See all ${goals.length} goals →` : 'Manage goals →'}
       </Link>
     </div>

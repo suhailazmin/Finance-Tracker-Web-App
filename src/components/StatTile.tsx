@@ -1,20 +1,34 @@
+import type { LucideIcon } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
 type Props = {
   label: string
   value: string
+  icon: LucideIcon
   detail?: string
-  // colour of the matching chart series, shown as a key dot beside the label
+  // colour of the matching chart series; tints the icon so it doubles as a chart key
   keyColor?: string
 }
 
-export default function StatTile({ label, value, detail, keyColor }: Props) {
+export default function StatTile({ label, value, icon: Icon, detail, keyColor }: Props) {
   return (
-    <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:p-4">
-      <p className="flex items-center gap-1.5 text-sm text-slate-500">
-        {keyColor && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: keyColor }} />}
-        {label}
-      </p>
-      <p className="mt-1 text-lg font-semibold text-slate-900 sm:text-xl">{value}</p>
-      {detail && <p className="mt-0.5 text-xs text-slate-500">{detail}</p>}
-    </div>
+    <Card size="sm" className="gap-1">
+      <CardHeader>
+        <CardDescription className="flex items-center justify-between gap-2">
+          {label}
+          <Icon
+            className="size-4 shrink-0"
+            style={keyColor ? { color: keyColor } : undefined}
+            aria-hidden="true"
+          />
+        </CardDescription>
+        <CardTitle className="text-lg font-semibold tabular-nums sm:text-xl">{value}</CardTitle>
+      </CardHeader>
+      {detail && (
+        <CardContent>
+          <p className="text-xs text-muted-foreground">{detail}</p>
+        </CardContent>
+      )}
+    </Card>
   )
 }

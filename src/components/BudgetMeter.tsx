@@ -16,20 +16,20 @@ export default function BudgetMeter({ spent, limit, pace }: Props) {
 
   return (
     <div>
-      <div className="relative h-2.5 rounded-full bg-slate-100" title={`${Math.round(used * 100)}% used`}>
+      <div className="relative h-2.5 rounded-full bg-muted" title={`${Math.round(used * 100)}% used`}>
         <div
           className="h-full rounded-full"
           style={{ width: `${Math.min(used, 1) * 100}%`, backgroundColor: style.color }}
         />
         {pace !== undefined && pace > 0 && pace < 1 && (
           <div
-            className="absolute -top-1 h-4.5 w-0.5 rounded bg-slate-500"
+            className="absolute -top-1 h-4.5 w-0.5 rounded bg-foreground/60"
             style={{ left: `${pace * 100}%` }}
             title="Today"
           />
         )}
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-slate-600">
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <span
             className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white"

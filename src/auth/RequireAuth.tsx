@@ -6,7 +6,7 @@ export function RequireAuth() {
   const { session, loading } = useAuth()
 
   if (loading) {
-    return <p className="p-6 text-center text-slate-500">Loading…</p>
+    return <p className="p-6 text-center text-muted-foreground">Loading…</p>
   }
   return session ? <Outlet /> : <Navigate to="/login" replace />
 }
