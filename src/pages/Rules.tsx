@@ -37,7 +37,7 @@ export default function Rules() {
       />
       {error && <ErrorAlert message={error} />}
 
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <SectionCard title="Add a rule" icon={Plus}>
           <AddRuleForm rules={rules} categories={categories} onAdd={add} />
         </SectionCard>

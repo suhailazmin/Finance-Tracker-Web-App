@@ -156,7 +156,7 @@ export default function Transactions() {
         </p>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div id="add" className="scroll-mt-24 lg:sticky lg:top-24">
           <SectionCard title="Add transaction" description="Categories are picked automatically" icon={Plus}>
             <TransactionForm categories={categories} rules={rules} onSubmit={handleAdd} />
