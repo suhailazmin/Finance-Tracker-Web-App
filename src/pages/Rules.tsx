@@ -14,6 +14,7 @@ import { useCategories } from '../hooks/useCategories'
 import { useCategoryRules } from '../hooks/useCategoryRules'
 import { findRule, normalizeKeyword } from '../lib/categorize'
 import { supabase } from '../lib/supabase'
+import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Category, CategoryRule } from '../lib/types'
 
 type Uncategorized = { id: string; description: string; type: string }
@@ -175,20 +176,25 @@ function ApplyToPast({ rules, categoryById }: { rules: CategoryRule[]; categoryB
   const [version, setVersion] = useState(0)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  // reload when the user pulls to refresh
+  const refreshVersion = useRefreshVersion()
 
   useEffect(() => {
     let ignore = false
+    const done = beginLoad()
     supabase
       .from('transactions')
       .select('id, description, type')
       .is('category_id', null)
       .then(({ data }) => {
+        done()
         if (!ignore) setRows((data ?? []) as Uncategorized[])
       })
     return () => {
       ignore = true
+      done()
     }
-  }, [version])
+  }, [version, refreshVersion])
 
   // Only assign a rule's category when it fits the transaction's type
   const matches = (rows ?? []).flatMap((t) => {

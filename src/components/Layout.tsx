@@ -15,6 +15,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import ConfirmDialog from './ConfirmDialog'
 import HideAmountsButton from './HideAmountsButton'
+import PullToRefresh from './PullToRefresh'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -132,6 +133,8 @@ export default function Layout() {
             </div>
           </div>
         </header>
+
+        <PullToRefresh />
 
         <main className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:px-8 lg:pt-8 lg:pb-12">
           <Outlet />

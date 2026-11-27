@@ -147,6 +147,19 @@
   html {
     @apply font-sans;
     }
+  /* Phones: the header is green, so whatever iOS shows above it (the rubber-band
+     area when you pull down past the top) is painted green too, and the bounce itself
+     is turned off so the page doesn't drag away from the status bar. The body keeps
+     the ivory page colour; html is the canvas behind it. */
+  @media (max-width: 1023px) {
+    html {
+      background-color: var(--brand-forest);
+      overscroll-behavior-y: none;
+    }
+    body {
+      overscroll-behavior-y: none;
+    }
+  }
   /* iOS Safari gives date inputs a native minimum width that ignores w-full and overflows
      the form column; dropping the native appearance lets it size like other inputs */
   input[type="date"] {

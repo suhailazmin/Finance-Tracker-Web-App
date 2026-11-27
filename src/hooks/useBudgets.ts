@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addMonths, format, startOfMonth } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Budget } from '../lib/types'
 
 const monthKey = (d: Date) => format(startOfMonth(d), 'yyyy-MM-dd')
@@ -9,6 +10,8 @@ type Result = { key: string; budgets: Budget[]; error: string }
 
 // Spending limits for one month, plus set/remove/copy-from-last-month
 export function useBudgets(month: Date) {
+  // reload when the user pulls to refresh
+  const refreshVersion = useRefreshVersion()
   const [version, setVersion] = useState(0)
   const [result, setResult] = useState<Result>({ key: '', budgets: [], error: '' })
 
@@ -17,11 +20,13 @@ export function useBudgets(month: Date) {
 
   useEffect(() => {
     let ignore = false
+    const done = beginLoad()
     supabase
       .from('budgets')
       .select('id, category_id, month, limit_amount')
       .eq('month', current)
       .then(({ data, error }) => {
+        done()
         if (ignore) return
         setResult({
           key,
@@ -32,8 +37,9 @@ export function useBudgets(month: Date) {
       })
     return () => {
       ignore = true
+      done()
     }
-  }, [current, key])
+  }, [current, key, refreshVersion])
 
   const refresh = () => setVersion((v) => v + 1)
 
