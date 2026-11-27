@@ -42,3 +42,18 @@ export type CategoryRule = {
   category_id: string
   priority: number // higher wins
 }
+
+export type RecurringTransaction = {
+  id: string
+  description: string
+  amount: number
+  type: TransactionType
+  category_id: string | null
+  day_of_month: number // 1-31; 29-31 fall back to the month's last day
+  start_month: string // yyyy-MM-01, first month it applies
+  last_month: string | null // yyyy-MM-01, last month added or skipped
+  auto_add: boolean // false = ask first on the dashboard
+  active: boolean // false = paused
+}
+
+export type RecurringInput = Omit<RecurringTransaction, 'id' | 'last_month'>

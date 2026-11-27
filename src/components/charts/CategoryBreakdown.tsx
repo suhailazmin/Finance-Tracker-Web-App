@@ -1,14 +1,17 @@
+import { Link } from 'react-router-dom'
+import { format } from 'date-fns'
 import { chartColors } from '../../lib/chartTheme'
 import { formatRM } from '../../lib/format'
 import type { Category, Transaction } from '../../lib/types'
 
-type Props = { transactions: Transaction[]; categories: Category[] }
+// month: when given, each row links to that category's transactions for the month
+type Props = { transactions: Transaction[]; categories: Category[]; month?: Date }
 
 // Small but non-zero shares show "<1%" rather than a misleading "0%"
 const formatShare = (share: number) => (share > 0 && share < 0.005 ? '<1%' : `${Math.round(share * 100)}%`)
 
 // Ranked horizontal bars: one hue for magnitude, the category's own colour only as a key dot
-export default function CategoryBreakdown({ transactions, categories }: Props) {
+export default function CategoryBreakdown({ transactions, categories, month }: Props) {
   const categoryById = new Map(categories.map((c) => [c.id, c]))
   const totals = new Map<string, number>()
   for (const t of transactions) {
@@ -26,9 +29,10 @@ export default function CategoryBreakdown({ transactions, categories }: Props) {
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No spending this month.</p>
 
   return (
-    <ul className="space-y-3">
-      {rows.map((r) => (
-        <li key={r.id} className="text-sm" title={`${r.category?.name ?? 'Uncategorized'}: ${formatRM(r.amount)}`}>
+    <ul className={month ? 'space-y-1' : 'space-y-3'}>
+      {rows.map((r) => {
+        const bar = (
+          <>
           <div className="flex items-baseline justify-between gap-3">
             <span className="flex items-center gap-1.5 text-foreground">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: r.category?.color ?? '#cbd5e1' }} />
@@ -47,8 +51,25 @@ export default function CategoryBreakdown({ transactions, categories }: Props) {
               style={{ width: `${(r.amount / max) * 100}%`, backgroundColor: chartColors.expenses }}
             />
           </div>
-        </li>
-      ))}
+          </>
+        )
+        const label = `${r.category?.name ?? 'Uncategorized'}: ${formatRM(r.amount)}`
+        return (
+          <li key={r.id} className="text-sm" title={label}>
+            {month ? (
+              <Link
+                to={`/transactions?category=${r.id || 'none'}&scope=month&month=${format(month, 'yyyy-MM')}`}
+                className="-mx-2 block rounded-lg px-2 py-1 transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+                aria-label={`${label}. See these transactions`}
+              >
+                {bar}
+              </Link>
+            ) : (
+              bar
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }

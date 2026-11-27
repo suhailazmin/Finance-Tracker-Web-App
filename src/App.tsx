@@ -5,8 +5,11 @@ import { RequireAuth } from './auth/RequireAuth'
 import Layout from './components/Layout'
 import Account from './pages/Account'
 import Budgets from './pages/Budgets'
+import Categories from './pages/Categories'
 import Dashboard from './pages/Dashboard'
 import Goals from './pages/Goals'
+import Import from './pages/Import'
+import Recurring from './pages/Recurring'
 import Login from './pages/Login'
 import Rules from './pages/Rules'
 import Transactions from './pages/Transactions'
@@ -28,6 +31,9 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/budgets" element={<Budgets />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/import" element={<Import />} />
+          <Route path="/recurring" element={<Recurring />} />
+          <Route path="/categories" element={<Categories />} />
           <Route path="/rules" element={<Rules />} />
           <Route path="/account" element={<Account />} />
         </Route>
