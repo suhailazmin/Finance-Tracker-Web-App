@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './auth/AuthContext'
 import { RequireAuth } from './auth/RequireAuth'
 import Layout from './components/Layout'
 import Account from './pages/Account'
@@ -8,8 +10,15 @@ import Goals from './pages/Goals'
 import Login from './pages/Login'
 import Rules from './pages/Rules'
 import Transactions from './pages/Transactions'
+import { hideSplash } from './lib/splash'
 
 function App() {
+  const { loading } = useAuth()
+  // the splash in index.html stays up until we know whether you are signed in
+  useEffect(() => {
+    if (!loading) hideSplash()
+  }, [loading])
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
