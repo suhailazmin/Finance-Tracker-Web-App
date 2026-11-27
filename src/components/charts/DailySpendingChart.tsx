@@ -6,6 +6,7 @@ import { useAmountsHidden } from '../../lib/privacy'
 import { useTheme } from '../../lib/theme'
 import type { Transaction } from '../../lib/types'
 import { ChartTooltip, TableView } from './ChartParts'
+import { addRM } from '../../lib/money'
 
 type Row = { date: string; day: string; label: string; amount: number }
 
@@ -15,7 +16,7 @@ export default function DailySpendingChart({ transactions, month }: { transactio
   const { dark } = useTheme()
   const byDate = new Map<string, number>()
   for (const t of transactions) {
-    if (t.type === 'expense') byDate.set(t.date, (byDate.get(t.date) ?? 0) + t.amount)
+    if (t.type === 'expense') byDate.set(t.date, addRM(byDate.get(t.date) ?? 0, t.amount))
   }
 
   const data: Row[] = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) }).map((d) => {

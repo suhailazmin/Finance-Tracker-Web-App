@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { chartColors } from '../../lib/chartTheme'
 import { formatRM } from '../../lib/format'
 import type { Category, Transaction } from '../../lib/types'
+import { addRM, sumRM } from '../../lib/money'
 
 // month: when given, each row links to that category's transactions for the month
 type Props = { transactions: Transaction[]; categories: Category[]; month?: Date }
@@ -17,13 +18,13 @@ export default function CategoryBreakdown({ transactions, categories, month }: P
   for (const t of transactions) {
     if (t.type !== 'expense') continue
     const key = t.category_id ?? ''
-    totals.set(key, (totals.get(key) ?? 0) + t.amount)
+    totals.set(key, addRM(totals.get(key) ?? 0, t.amount))
   }
 
   const rows = [...totals]
     .map(([id, amount]) => ({ id, amount, category: categoryById.get(id) }))
     .sort((a, b) => b.amount - a.amount)
-  const total = rows.reduce((sum, r) => sum + r.amount, 0)
+  const total = sumRM(rows.map((r) => r.amount))
   const max = rows[0]?.amount ?? 0
 
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No spending this month.</p>

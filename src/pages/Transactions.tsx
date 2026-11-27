@@ -22,6 +22,7 @@ import { useTransactions } from '../hooks/useTransactions'
 import { chartColors } from '../lib/chartTheme'
 import { formatRM } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
+import { sumRM } from '../lib/money'
 
 type Scope = 'month' | 'all'
 
@@ -82,8 +83,8 @@ export default function Transactions() {
   const view = searching ? search : monthView
   const { transactions, loading, error } = view
 
-  const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
-  const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
+  const income = sumRM(transactions.filter((t) => t.type === 'income').map((t) => t.amount))
+  const expenses = sumRM(transactions.filter((t) => t.type === 'expense').map((t) => t.amount))
   const partial = searching && search.count > transactions.length
 
   async function handleAdd(input: TransactionInput) {

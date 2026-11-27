@@ -14,10 +14,11 @@ import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
 import { useRecurring } from '../hooks/useRecurring'
 import { useTransactions } from '../hooks/useTransactions'
-import { monthProgress } from '../lib/budget'
+import { monthProgress, spentByCategory } from '../lib/budget'
 import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
 import type { Budget, Category } from '../lib/types'
+import { sumRM } from '../lib/money'
 
 // Positive RM amount with at most 2 decimal places
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
@@ -34,12 +35,7 @@ export default function Budgets() {
     isCurrentMonth(month, today) ? forecastMonth(transactions, recurring, today, categoryId).projected : undefined
   const { budgets, loading, error, set, remove, copyFromPreviousMonth } = useBudgets(month)
 
-  const spentByCategory = new Map<string, number>()
-  for (const t of transactions) {
-    if (t.type === 'expense' && t.category_id) {
-      spentByCategory.set(t.category_id, (spentByCategory.get(t.category_id) ?? 0) + t.amount)
-    }
-  }
+  const spentIn = spentByCategory(transactions)
   const budgetByCategory = new Map(budgets.map((b) => [b.category_id, b]))
   const expenseCategories = categories.filter((c) => c.type === 'expense')
   // budgeted categories first, so the limits are easy to scan
@@ -47,8 +43,8 @@ export default function Budgets() {
     (a, b) => Number(budgetByCategory.has(b.id)) - Number(budgetByCategory.has(a.id))
   )
 
-  const totalLimit = budgets.reduce((sum, b) => sum + b.limit_amount, 0)
-  const totalSpent = budgets.reduce((sum, b) => sum + (spentByCategory.get(b.category_id) ?? 0), 0)
+  const totalLimit = sumRM(budgets.map((b) => b.limit_amount))
+  const totalSpent = sumRM(budgets.map((b) => spentIn.get(b.category_id) ?? 0))
   const pace = monthProgress(month)
   const previousName = format(addMonths(month, -1), 'MMMM')
 
@@ -104,7 +100,7 @@ export default function Budgets() {
             key={c.id}
             category={c}
             budget={budgetByCategory.get(c.id)}
-            spent={spentByCategory.get(c.id) ?? 0}
+            spent={spentIn.get(c.id) ?? 0}
             pace={pace}
             projected={projectedFor(c.id)}
             onSave={(limit) => set(c.id, limit)}

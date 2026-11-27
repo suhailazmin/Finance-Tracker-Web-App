@@ -1,6 +1,7 @@
 import { getDaysInMonth, isSameMonth, startOfMonth } from 'date-fns'
 import { monthKey } from './recurring'
 import type { RecurringTransaction, Transaction } from './types'
+import { sumRM, toSen } from './money'
 
 // Month-end spending forecast:
 //   spent so far
@@ -29,8 +30,8 @@ export function forecastMonth(
 ): Forecast {
   const inScope = (catId: string | null) => categoryId === undefined || catId === categoryId
   const expenses = transactions.filter((t) => t.type === 'expense' && inScope(t.category_id))
-  const spent = expenses.reduce((sum, t) => sum + t.amount, 0)
-  const everydaySpent = expenses.filter((t) => t.source !== 'recurring').reduce((sum, t) => sum + t.amount, 0)
+  const spent = sumRM(expenses.map((t) => t.amount))
+  const everydaySpent = sumRM(expenses.filter((t) => t.source !== 'recurring').map((t) => t.amount))
 
   const daysElapsed = today.getDate()
   const daysLeft = getDaysInMonth(today) - daysElapsed
@@ -39,16 +40,18 @@ export function forecastMonth(
 
   // recurring expenses that apply this month but haven't been added (or skipped) yet
   const thisMonth = monthKey(today)
-  const upcomingRecurring = recurring
-    .filter(
-      (r) =>
-        r.active &&
-        r.type === 'expense' &&
-        inScope(r.category_id) &&
-        r.start_month <= thisMonth &&
-        (r.last_month === null || r.last_month < thisMonth)
-    )
-    .reduce((sum, r) => sum + r.amount, 0)
+  const upcomingRecurring = sumRM(
+    recurring
+      .filter(
+        (r) =>
+          r.active &&
+          r.type === 'expense' &&
+          inScope(r.category_id) &&
+          r.start_month <= thisMonth &&
+          (r.last_month === null || r.last_month < thisMonth)
+      )
+      .map((r) => r.amount)
+  )
 
   return {
     spent,
@@ -68,7 +71,7 @@ export type BudgetOutlook = 'over' | 'heading-over' | 'on-track'
 
 // "over" = already past the limit; "heading-over" = will pass it at this pace
 export function budgetOutlook(spent: number, projected: number, limit: number): BudgetOutlook {
-  if (spent > limit) return 'over'
-  if (projected > limit) return 'heading-over'
+  if (toSen(spent) > toSen(limit)) return 'over'
+  if (toSen(projected) > toSen(limit)) return 'heading-over'
   return 'on-track'
 }

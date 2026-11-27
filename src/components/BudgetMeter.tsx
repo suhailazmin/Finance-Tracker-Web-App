@@ -1,5 +1,6 @@
 import { budgetStatus, statusStyle } from '../lib/budget'
 import { formatRM } from '../lib/format'
+import { sumRM } from '../lib/money'
 
 type Props = {
   spent: number
@@ -12,7 +13,7 @@ export default function BudgetMeter({ spent, limit, pace }: Props) {
   const status = budgetStatus(spent, limit)
   const style = statusStyle[status]
   const used = limit > 0 ? spent / limit : 0
-  const left = limit - spent
+  const left = sumRM([limit, -spent])
 
   return (
     <div>

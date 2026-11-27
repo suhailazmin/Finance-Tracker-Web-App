@@ -39,6 +39,7 @@ import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
 import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
+import { sumRM } from '../lib/money'
 
 // The chart library is the heaviest part of the dashboard, so the charts load just after
 // the page appears (balance and tiles show first)
@@ -58,16 +59,16 @@ export default function Dashboard() {
   const [today] = useState(() => new Date())
   const showForecast = isCurrentMonth(month, today) && !loading
 
-  const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
-  const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
-  const balance = income - expenses
+  const income = sumRM(transactions.filter((t) => t.type === 'income').map((t) => t.amount))
+  const expenses = sumRM(transactions.filter((t) => t.type === 'expense').map((t) => t.amount))
+  const balance = sumRM([income, -expenses])
   const previous = totals.at(-2)
   const previousName = format(addMonths(month, -1), 'MMMM')
   const monthName = format(month, 'MMMM yyyy')
 
   const rate = income > 0 ? Math.round((balance / income) * 100) : null
   const previousRate = previous && previous.income > 0 ? Math.round(((previous.income - previous.expenses) / previous.income) * 100) : null
-  const goalsSaved = goals.reduce((sum, g) => sum + g.current_amount, 0)
+  const goalsSaved = sumRM(goals.map((g) => g.current_amount))
   const empty = !loading && transactions.length === 0
 
   return (

@@ -22,6 +22,7 @@ import { formatRM } from '../lib/format'
 import { monthKey, nextOccurrence, occurrenceIn, ordinal } from '../lib/recurring'
 import type { Category, CategoryRule, RecurringInput, RecurringTransaction, TransactionType } from '../lib/types'
 import migrationSql from '../../supabase/migrations/20261127_recurring_transactions.sql?raw'
+import { sumRM } from '../lib/money'
 
 // Positive RM amount with at most 2 decimal places
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
@@ -32,7 +33,7 @@ export default function Recurring() {
   const { items, loaded, error, missingTable, add, update, remove, setActive } = useRecurring()
 
   const monthly = (type: TransactionType) =>
-    items.filter((i) => i.active && i.type === type).reduce((sum, i) => sum + i.amount, 0)
+    sumRM(items.filter((i) => i.active && i.type === type).map((i) => i.amount))
   const moneyIn = monthly('income')
   const moneyOut = monthly('expense')
 

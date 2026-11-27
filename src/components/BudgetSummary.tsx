@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import BudgetMeter from './BudgetMeter'
 import { formatRM } from '../lib/format'
 import type { Budget, Category, Transaction } from '../lib/types'
+import { spentByCategory } from '../lib/budget'
 
 type Props = {
   budgets: Budget[]
@@ -25,11 +26,10 @@ export default function BudgetSummary({ budgets, categories, transactions, pace,
   }
 
   const categoryById = new Map(categories.map((c) => [c.id, c]))
+  const spentIn = spentByCategory(transactions)
   const rows = budgets
     .map((b) => {
-      const spent = transactions
-        .filter((t) => t.type === 'expense' && t.category_id === b.category_id)
-        .reduce((sum, t) => sum + t.amount, 0)
+      const spent = spentIn.get(b.category_id) ?? 0
       return { budget: b, spent, used: spent / b.limit_amount, category: categoryById.get(b.category_id) }
     })
     .sort((a, b) => b.used - a.used)
