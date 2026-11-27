@@ -81,7 +81,7 @@ export default function Dashboard() {
       {error && <ErrorAlert message={error} />}
 
       {/* Balance card + four stat tiles */}
-      <div className="grid gap-4 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <DashboardHero month={month} balance={balance} income={income} />
         </div>
@@ -117,7 +117,7 @@ export default function Dashboard() {
       </div>
 
       {showForecast && (
-        <div className="grid gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <ForecastCard
             forecast={forecastMonth(transactions, recurring, today)}
             month={month}
@@ -158,7 +158,7 @@ export default function Dashboard() {
         </Card>
       ) : (
         <>
-          <div className="grid gap-6 lg:grid-cols-12">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <SectionCard
               title="Cashflow"
               description="Income vs expenses, last 6 months"
@@ -180,7 +180,7 @@ export default function Dashboard() {
             </SectionCard>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-12">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <SectionCard
               title="Recent transactions"
               description={monthName}
@@ -199,7 +199,7 @@ export default function Dashboard() {
             </SectionCard>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-12">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <SectionCard title="Daily spending" description={monthName} icon={CalendarDays} tone="orange" className="lg:col-span-8">
               <Suspense fallback={chartPlaceholder}>
                 <DailySpendingChart transactions={transactions} month={month} />
@@ -213,7 +213,7 @@ export default function Dashboard() {
       )}
 
       {empty && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <SectionCard title="Budgets" description="Closest to their limit first" icon={Target}>
             <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} />
           </SectionCard>

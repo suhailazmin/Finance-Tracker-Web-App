@@ -26,7 +26,7 @@ export default function Categories() {
       />
       {error && <ErrorAlert message={error} />}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <SectionCard title="New category" icon={Plus} className="lg:sticky lg:top-24">
           <AddCategoryForm categories={categories} onAdd={add} />
         </SectionCard>

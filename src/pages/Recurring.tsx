@@ -47,7 +47,7 @@ export default function Recurring() {
       {missingTable ? (
         <SetupNotice />
       ) : (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <SectionCard title="New recurring item" icon={Plus} className="lg:sticky lg:top-24">
             <RecurringForm categories={categories} rules={rules} onSubmit={add} />
           </SectionCard>
@@ -307,64 +307,70 @@ function RecurringRow({ item, categories, rules, onUpdate, onRemove, onToggle }:
   }
 
   return (
-    <li className={cn('flex items-center gap-3 px-5 py-3', !item.active && 'opacity-60')}>
-      <CategoryIcon category={category} />
+    // two lines, so a phone has room for the name, schedule, amount and three buttons:
+    // name + badge + amount on top, schedule + actions underneath
+    <li className={cn('flex items-start gap-3 px-5 py-3', !item.active && 'opacity-60')}>
+      <CategoryIcon category={category} className="mt-0.5" />
       <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold">
-          <span className="truncate">{item.description}</span>
-          {!item.active ? (
-            <Badge variant="outline">Paused</Badge>
-          ) : item.auto_add ? (
-            <Badge variant="secondary">Auto</Badge>
-          ) : (
-            <Badge className="bg-brand-orange/20 text-brand-orange-ink">Ask first</Badge>
-          )}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          Monthly on the {ordinal(item.day_of_month)}
-          {item.active && ` · Next: ${format(nextOccurrence(item), 'd MMM')}`}
-        </p>
-      </div>
-      <p className={cn('text-sm font-extrabold whitespace-nowrap', item.type === 'income' ? 'text-primary' : 'text-foreground')}>
-        {item.type === 'income' ? '+' : '−'}
-        {formatRM(item.amount)}
-      </p>
-      <div className="flex">
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true)
-            await onToggle()
-            setBusy(false)
-          }}
-          aria-label={item.active ? `Pause ${item.description}` : `Resume ${item.description}`}
-          title={item.active ? 'Pause' : 'Resume'}
-          className="text-muted-foreground hover:text-primary"
-        >
-          {item.active ? <Pause /> : <Play />}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setEditing(true)}
-          aria-label={`Edit ${item.description}`}
-          title="Edit"
-          className="text-muted-foreground hover:text-primary"
-        >
-          <Pencil />
-        </Button>
-        <Button
-          onClick={onRemove}
-          variant="ghost"
-          size="icon"
-          aria-label={`Delete ${item.description}`}
-          title="Delete"
-          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2 />
-        </Button>
+        <div className="flex items-start justify-between gap-3">
+          <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold">
+            <span className="wrap-break-word">{item.description}</span>
+            {!item.active ? (
+              <Badge variant="outline">Paused</Badge>
+            ) : item.auto_add ? (
+              <Badge variant="secondary">Auto</Badge>
+            ) : (
+              <Badge className="bg-brand-orange/20 text-brand-orange-ink">Ask first</Badge>
+            )}
+          </p>
+          <p className={cn('text-sm font-extrabold whitespace-nowrap', item.type === 'income' ? 'text-primary' : 'text-foreground')}>
+            {item.type === 'income' ? '+' : '−'}
+            {formatRM(item.amount)}
+          </p>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            Monthly on the {ordinal(item.day_of_month)}
+            {item.active && ` · Next: ${format(nextOccurrence(item), 'd MMM')}`}
+          </p>
+          <div className="-mr-2 flex shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true)
+                await onToggle()
+                setBusy(false)
+              }}
+              aria-label={item.active ? `Pause ${item.description}` : `Resume ${item.description}`}
+              title={item.active ? 'Pause' : 'Resume'}
+              className="text-muted-foreground hover:text-primary"
+            >
+              {item.active ? <Pause /> : <Play />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setEditing(true)}
+              aria-label={`Edit ${item.description}`}
+              title="Edit"
+              className="text-muted-foreground hover:text-primary"
+            >
+              <Pencil />
+            </Button>
+            <Button
+              onClick={onRemove}
+              variant="ghost"
+              size="icon"
+              aria-label={`Delete ${item.description}`}
+              title="Delete"
+              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 />
+            </Button>
+          </div>
+        </div>
       </div>
     </li>
   )

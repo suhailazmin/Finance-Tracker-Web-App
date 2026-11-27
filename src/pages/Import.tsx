@@ -115,7 +115,7 @@ export default function Import() {
       ) : (
         <>
           <SectionCard title="1. Choose your statement" icon={Upload}>
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
               <Field label="Which account is it from?">
                 <NativeSelect className="w-full" value={source} onChange={(e) => setSource(e.target.value as Source)}>
                   {SOURCES.map((s) => (
