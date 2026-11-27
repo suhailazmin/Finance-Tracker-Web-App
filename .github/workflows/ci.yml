@@ -1,0 +1,31 @@
+# Runs on every pull request and push to main: the tests, lint and a production build.
+# A red ✕ on the pull request means something broke; open the run to see which step.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Tests
+        run: npm test
+        env:
+          TZ: Asia/Kuala_Lumpur
+      - name: Lint
+        run: npm run lint
+      - name: Type-check and build
+        run: npm run build

@@ -74,6 +74,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 | UI | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com) (Radix), [Lucide](https://lucide.dev) icons, [Sonner](https://sonner.emilkowal.ski) toasts, Nunito font |
 | Charts and data | [Recharts](https://recharts.org), date-fns, [Papa Parse](https://www.papaparse.com) for CSV |
 | Offline | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) (Workbox service worker) |
+| Testing | [Vitest](https://vitest.dev) |
 | Backend | [Supabase](https://supabase.com): Postgres, Auth and row-level security |
 | Hosting | [Vercel](https://vercel.com), plus a GitHub Actions job that keeps the free Supabase project awake |
 
@@ -128,6 +129,9 @@ Open http://localhost:5173 and create an account.
 | `npm run build` | Type-check and build for production into `dist/`, including the service worker |
 | `npm run preview` | Serve the production build locally. Use this to try offline mode |
 | `npm run lint` | Lint with Oxlint |
+| `npm test` | Run the tests for the money maths: budgets, goal plans, auto-categorize rules and forecasts (`npm run test:watch` reruns them as you edit) |
+
+Every pull request runs the tests, lint and a production build on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 ## Deploying
 
