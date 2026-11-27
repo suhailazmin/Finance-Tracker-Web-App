@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { endOfMonth, format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
-import { ArrowDownLeft, ArrowUpRight, Plus, Search, SearchX, Upload, Wallet, X, type LucideIcon } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Download, Plus, Search, SearchX, Upload, Wallet, X, type LucideIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import EmptyState from '../components/EmptyState'
 import { ErrorAlert } from '../components/Feedback'
 import MonthPicker from '../components/MonthPicker'
@@ -19,6 +20,7 @@ import { useCategoryRules } from '../hooks/useCategoryRules'
 import { SEARCH_LIMIT, useTransactionSearch } from '../hooks/useTransactionSearch'
 import { useTransactions } from '../hooks/useTransactions'
 import { chartColors } from '../lib/chartTheme'
+import { exportTransactions, transactionsFilename } from '../lib/exportCsv'
 import { formatRM } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
 
@@ -103,6 +105,24 @@ export default function Transactions() {
   }, [location.key, location.hash])
 
   const monthName = format(month, 'MMMM yyyy')
+
+  const [exporting, setExporting] = useState(false)
+  async function exportView() {
+    setExporting(true)
+    const monthRange = { from: format(month, 'yyyy-MM-dd'), to: format(endOfMonth(month), 'yyyy-MM-dd') }
+    try {
+      const result = await exportTransactions(
+        searching ? { q, category, type, ...(scope === 'month' ? monthRange : {}) } : monthRange,
+        categories,
+        transactionsFilename(searching ? `search-${format(new Date(), 'yyyy-MM-dd')}` : format(month, 'yyyy-MM'))
+      )
+      if (result.saved) toast.success('Exported', { description: `${result.filename} · ${result.rows} transaction${result.rows === 1 ? '' : 's'}` })
+    } catch (e) {
+      toast.error('Couldn’t export', { description: (e as Error).message })
+    } finally {
+      setExporting(false)
+    }
+  }
   const categoryName =
     category === 'none' ? 'Uncategorized' : categories.find((c) => c.id === category)?.name ?? (category ? 'that category' : '')
 
@@ -156,15 +176,27 @@ export default function Transactions() {
                     : monthName}
                 </p>
               </div>
-              {searching ? (
-                <Button variant="ghost" size="sm" onClick={() => setFilter({ q: '', category: '', type: '', scope: '', month: '' })}>
-                  <X /> Clear
+              <div className="flex items-center gap-1">
+                {/* saves exactly what's listed: this month, or every search match (not just the first 300 shown) */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={exporting || transactions.length === 0}
+                  onClick={exportView}
+                  title="Download what's listed as a CSV file"
+                >
+                  <Download /> {exporting ? 'Preparing…' : 'Export'}
                 </Button>
-              ) : (
-                <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-bold text-primary">
-                  {transactions.length} item{transactions.length === 1 ? '' : 's'}
-                </span>
-              )}
+                {searching ? (
+                  <Button variant="ghost" size="sm" onClick={() => setFilter({ q: '', category: '', type: '', scope: '', month: '' })}>
+                    <X /> Clear
+                  </Button>
+                ) : (
+                  <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-bold text-primary">
+                    {transactions.length} item{transactions.length === 1 ? '' : 's'}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="relative">

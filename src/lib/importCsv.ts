@@ -177,8 +177,9 @@ export function parseAmount(raw: string | undefined): Amount | null {
   return Number.isFinite(value) ? { value, negative, marker } : null
 }
 
-const INCOME_WORDS = /\b(cr|credit|deposit|reload|top ?up|receive[ds]?|received|refund|cash ?in|incoming|salary|dividend|interest|transfer in|money in|cashback)\b/i
-const EXPENSE_WORDS = /\b(dr|debit|payment|pay|withdraw(al)?|purchase|transfer out|spend|spent|paid|money out|deduct(ed|ion)?|charge)\b/i
+// "Income" / "Expense" also read back Monetra's own export
+const INCOME_WORDS = /\b(income|cr|credit|deposit|reload|top ?up|receive[ds]?|received|refund|cash ?in|incoming|salary|dividend|interest|transfer in|money in|cashback)\b/i
+const EXPENSE_WORDS = /\b(expenses?|dr|debit|payment|pay|withdraw(al)?|purchase|transfer out|spend|spent|paid|money out|deduct(ed|ion)?|charge)\b/i
 
 export function directionOf(raw: string | undefined): TransactionType | null {
   const text = clean(raw)
