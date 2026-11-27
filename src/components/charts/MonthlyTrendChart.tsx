@@ -2,12 +2,15 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { format, parseISO } from 'date-fns'
 import { axisTick, chartColors, hoverCursor, yAxisProps } from '../../lib/chartTheme'
 import { formatRM } from '../../lib/format'
+import { useAmountsHidden } from '../../lib/privacy'
 import type { MonthTotal } from '../../hooks/useMonthlyTotals'
 import { ChartTooltip, Legend, TableView } from './ChartParts'
 
 type Row = MonthTotal & { short: string; long: string }
 
 export default function MonthlyTrendChart({ totals }: { totals: MonthTotal[] }) {
+  // redraw when "hide amounts" changes, so the axis labels update too
+  const hidden = useAmountsHidden()
   const data: Row[] = totals.map((t) => {
     const d = parseISO(`${t.month}-01`)
     return { ...t, short: format(d, 'MMM'), long: format(d, 'MMMM yyyy') }
@@ -23,7 +26,7 @@ export default function MonthlyTrendChart({ totals }: { totals: MonthTotal[] }) 
       />
       <div className="mt-3 h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barGap={2}>
+          <BarChart key={hidden ? 'hidden' : 'shown'} data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barGap={2}>
             <CartesianGrid vertical={false} stroke={chartColors.grid} />
             <XAxis dataKey="short" tickLine={false} axisLine={{ stroke: chartColors.baseline }} tick={axisTick} />
             <YAxis {...yAxisProps} />
