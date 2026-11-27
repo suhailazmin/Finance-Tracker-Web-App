@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
-import { ArrowDownLeft, ArrowUpRight, Pencil, Plus, Trash2, Wallet, type LucideIcon } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Pencil, Plus, Trash2, Upload, Wallet, type LucideIcon } from 'lucide-react'
 import CategoryIcon from '../components/CategoryIcon'
 import ConfirmDialog from '../components/ConfirmDialog'
 import EmptyState from '../components/EmptyState'
@@ -56,7 +56,16 @@ export default function Transactions() {
       <PageHeader
         title="Transactions"
         description="Everything you earned and spent"
-        actions={<MonthPicker month={month} onChange={setMonth} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/import">
+                <Upload /> Import CSV
+              </Link>
+            </Button>
+            <MonthPicker month={month} onChange={setMonth} />
+          </div>
+        }
       />
 
       <div className="grid grid-cols-3 gap-3 sm:gap-4">

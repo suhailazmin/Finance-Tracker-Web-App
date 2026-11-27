@@ -8,6 +8,7 @@ import {
   Plus,
   ReceiptText,
   Shapes,
+  Upload,
   Target,
   UserRound,
   WandSparkles,
@@ -119,6 +120,11 @@ export default function Layout() {
                   <DropdownMenuItem asChild>
                     <Link to="/account">
                       <UserRound /> Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/import">
+                      <Upload /> Import statement
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="lg:hidden">

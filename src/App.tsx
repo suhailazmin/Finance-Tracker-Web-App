@@ -8,6 +8,7 @@ import Budgets from './pages/Budgets'
 import Categories from './pages/Categories'
 import Dashboard from './pages/Dashboard'
 import Goals from './pages/Goals'
+import Import from './pages/Import'
 import Login from './pages/Login'
 import Rules from './pages/Rules'
 import Transactions from './pages/Transactions'
@@ -29,6 +30,7 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/budgets" element={<Budgets />} />
           <Route path="/goals" element={<Goals />} />
+          <Route path="/import" element={<Import />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/rules" element={<Rules />} />
           <Route path="/account" element={<Account />} />
