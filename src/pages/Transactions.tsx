@@ -1,41 +1,92 @@
-import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
-import { ArrowDownLeft, ArrowUpRight, Pencil, Plus, Trash2, Upload, Wallet, type LucideIcon } from 'lucide-react'
-import CategoryIcon from '../components/CategoryIcon'
-import ConfirmDialog from '../components/ConfirmDialog'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { endOfMonth, format, isSameMonth, parseISO, startOfMonth } from 'date-fns'
+import { ArrowDownLeft, ArrowUpRight, Plus, Search, SearchX, Upload, Wallet, X, type LucideIcon } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
-import { chartColors } from '../lib/chartTheme'
 import { ErrorAlert } from '../components/Feedback'
 import MonthPicker from '../components/MonthPicker'
 import PageHeader from '../components/PageHeader'
 import SectionCard from '../components/SectionCard'
+import SegmentedControl from '../components/SegmentedControl'
+import TransactionForm from '../components/TransactionForm'
+import TransactionList from '../components/TransactionList'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import TransactionForm from '../components/TransactionForm'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOptGroup, NativeSelectOption } from '@/components/ui/native-select'
 import { useCategories } from '../hooks/useCategories'
 import { useCategoryRules } from '../hooks/useCategoryRules'
+import { SEARCH_LIMIT, useTransactionSearch } from '../hooks/useTransactionSearch'
 import { useTransactions } from '../hooks/useTransactions'
+import { chartColors } from '../lib/chartTheme'
 import { formatRM } from '../lib/format'
-import type { Transaction, TransactionInput } from '../lib/types'
+import type { TransactionInput, TransactionType } from '../lib/types'
+
+type Scope = 'month' | 'all'
 
 export default function Transactions() {
-  const [month, setMonth] = useState(() => startOfMonth(new Date()))
-  const [editingId, setEditingId] = useState<string | null>(null)
+  // Filters live in the address (?q=grab&category=…&type=…&scope=all&month=2026-11),
+  // so the dashboard can link straight to "Shopping in November" and Back works
+  const [params, setParams] = useSearchParams()
+  const q = params.get('q') ?? ''
+  const category = params.get('category') ?? ''
+  const type = (params.get('type') ?? '') as '' | TransactionType
+  // typing or filtering searches every month unless a month was chosen (or linked) explicitly
+  const scopeParam = params.get('scope')
+  const scope: Scope =
+    scopeParam === 'all' || scopeParam === 'month' ? scopeParam : q.trim() || category || type ? 'all' : 'month'
+
+  const [month, setMonthState] = useState(() => {
+    const m = params.get('month')
+    const d = m ? parseISO(`${m}-01`) : new Date()
+    return startOfMonth(isNaN(d.getTime()) ? new Date() : d)
+  })
+
+  // Quick successive changes (clear the search, then pick a category) must build on each other,
+  // even before React re-renders, so keep the newest filters in a ref
+  const latest = useRef(params)
+  useEffect(() => {
+    latest.current = params
+  }, [params])
+  function setFilter(patch: Record<string, string>) {
+    const next = new URLSearchParams(latest.current)
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) next.set(k, v)
+      else next.delete(k)
+    }
+    latest.current = next
+    setParams(next, { replace: true })
+  }
+
+  function setMonth(m: Date) {
+    setMonthState(m)
+    if (params.has('month')) setFilter({ month: format(m, 'yyyy-MM') })
+  }
+
+  const searching = Boolean(q.trim() || category || type || scope === 'all')
+
   const { categories } = useCategories()
   const { rules } = useCategoryRules()
-  const { transactions, loading, error, add, update, remove } = useTransactions(month)
+  const monthView = useTransactions(month)
+  const search = useTransactionSearch(
+    {
+      q,
+      category,
+      type,
+      from: scope === 'month' ? format(month, 'yyyy-MM-dd') : undefined,
+      to: scope === 'month' ? format(endOfMonth(month), 'yyyy-MM-dd') : undefined,
+    },
+    searching
+  )
+  const view = searching ? search : monthView
+  const { transactions, loading, error } = view
 
-  const categoryById = new Map(categories.map((c) => [c.id, c]))
   const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
-
-  // Group by date, keeping the newest-first order from the query
-  const groups = new Map<string, Transaction[]>()
-  for (const t of transactions) groups.set(t.date, [...(groups.get(t.date) ?? []), t])
+  const partial = searching && search.count > transactions.length
 
   async function handleAdd(input: TransactionInput) {
-    const message = await add(input)
+    const message = await monthView.add(input)
     // jump to the month of the new transaction so it is visible
     const added = parseISO(input.date)
     if (!message && !isSameMonth(added, month)) setMonth(startOfMonth(added))
@@ -50,6 +101,10 @@ export default function Transactions() {
     form?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     form?.querySelector<HTMLInputElement>('input[inputmode="decimal"]')?.focus({ preventScroll: true })
   }, [location.key, location.hash])
+
+  const monthName = format(month, 'MMMM yyyy')
+  const categoryName =
+    category === 'none' ? 'Uncategorized' : categories.find((c) => c.id === category)?.name ?? (category ? 'that category' : '')
 
   return (
     <div className="space-y-6">
@@ -73,6 +128,12 @@ export default function Transactions() {
         <Stat label="Expenses" value={formatRM(expenses)} icon={ArrowUpRight} color={chartColors.expenses} />
         <Stat label="Balance" value={formatRM(income - expenses)} icon={Wallet} />
       </div>
+      {searching && (
+        <p className="-mt-3 text-xs text-muted-foreground">
+          Totals for the {partial ? `first ${transactions.length} of ${search.count}` : search.count} matching transaction
+          {search.count === 1 ? '' : 's'}.
+        </p>
+      )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div id="add" className="scroll-mt-24 lg:sticky lg:top-24">
@@ -82,104 +143,122 @@ export default function Transactions() {
         </div>
 
         <Card className="gap-0 py-0">
-          <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
-            <div>
-              <h2 className="text-base font-bold">History</h2>
-              <p className="text-sm text-muted-foreground">{format(month, 'MMMM yyyy')}</p>
+          {/* ---------- search and filters ---------- */}
+          <div className="space-y-3 border-b px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold">{searching ? 'Results' : 'History'}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {searching
+                    ? loading
+                      ? 'Searching…'
+                      : `${search.count} found${scope === 'month' ? ` in ${monthName}` : ' in all months'}`
+                    : monthName}
+                </p>
+              </div>
+              {searching ? (
+                <Button variant="ghost" size="sm" onClick={() => setFilter({ q: '', category: '', type: '', scope: '', month: '' })}>
+                  <X /> Clear
+                </Button>
+              ) : (
+                <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-bold text-primary">
+                  {transactions.length} item{transactions.length === 1 ? '' : 's'}
+                </span>
+              )}
             </div>
-            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-bold text-primary">
-              {transactions.length} item{transactions.length === 1 ? '' : 's'}
-            </span>
+
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              <Input
+                type="search"
+                value={q}
+                onChange={(e) => setFilter({ q: e.target.value })}
+                placeholder="Search descriptions, e.g. Grab"
+                aria-label="Search transactions"
+                className="pl-8"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <NativeSelect
+                size="sm"
+                className="w-full"
+                value={category}
+                onChange={(e) => setFilter({ category: e.target.value })}
+                aria-label="Filter by category"
+              >
+                <NativeSelectOption value="">All categories</NativeSelectOption>
+                <NativeSelectOption value="none">Uncategorized</NativeSelectOption>
+                {(['expense', 'income'] as const).map((t) => (
+                  <NativeSelectOptGroup key={t} label={t === 'expense' ? 'Expenses' : 'Income'}>
+                    {categories
+                      .filter((c) => c.type === t)
+                      .map((c) => (
+                        <NativeSelectOption key={c.id} value={c.id}>
+                          {c.name}
+                        </NativeSelectOption>
+                      ))}
+                  </NativeSelectOptGroup>
+                ))}
+              </NativeSelect>
+              <NativeSelect
+                size="sm"
+                className="w-full"
+                value={type}
+                onChange={(e) => setFilter({ type: e.target.value })}
+                aria-label="Filter by type"
+              >
+                <NativeSelectOption value="">Income and expenses</NativeSelectOption>
+                <NativeSelectOption value="expense">Expenses only</NativeSelectOption>
+                <NativeSelectOption value="income">Income only</NativeSelectOption>
+              </NativeSelect>
+            </div>
+
+            <SegmentedControl
+              label="Which months to show"
+              className="text-xs"
+              value={scope}
+              onChange={(s: Scope) => setFilter({ scope: s, month: s === 'month' ? format(month, 'yyyy-MM') : '' })}
+              options={[
+                { value: 'month', label: monthName },
+                { value: 'all', label: 'All months' },
+              ]}
+            />
           </div>
 
           {error && <ErrorAlert message={error} className="m-5 w-auto" />}
-          {!error && loading && transactions.length === 0 && (
-            <p className="p-5 text-sm text-muted-foreground">Loading…</p>
-          )}
-          {!error && !loading && transactions.length === 0 && (
-            <EmptyState title="No transactions yet">
-              Nothing recorded in {format(month, 'MMMM yyyy')}. Use the form to add one.
-            </EmptyState>
-          )}
+          {!error && loading && transactions.length === 0 && <p className="p-5 text-sm text-muted-foreground">Loading…</p>}
+          {!error && !loading && transactions.length === 0 &&
+            (searching ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                <SearchX className="size-8 text-muted-foreground" aria-hidden="true" />
+                <p className="font-bold">No matching transactions</p>
+                <p className="text-sm text-muted-foreground">
+                  {[q.trim() && `“${q.trim()}”`, categoryName, type && (type === 'income' ? 'income' : 'expenses')]
+                    .filter(Boolean)
+                    .join(' · ')}{' '}
+                  {scope === 'month' ? `in ${monthName}` : 'in any month'}. Try fewer filters
+                  {scope === 'month' ? ' or All months' : ''}.
+                </p>
+              </div>
+            ) : (
+              <EmptyState title="No transactions yet">Nothing recorded in {monthName}. Use the form to add one.</EmptyState>
+            ))}
 
-          {[...groups].map(([date, items]) => (
-            <div key={date}>
-              <h3 className="bg-muted/50 px-5 py-2 text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                {format(parseISO(date), 'EEEE, d MMM')}
-              </h3>
-              <ul className="divide-y divide-border/70">
-                {items.map((t) => {
-                  const category = t.category_id ? categoryById.get(t.category_id) : undefined
-                  return editingId === t.id ? (
-                    <li key={t.id} className="p-5">
-                      <TransactionForm
-                        categories={categories}
-                        rules={rules}
-                        initial={t}
-                        onSubmit={async (input) => {
-                          const message = await update(t.id, input)
-                          if (!message) setEditingId(null)
-                          return message
-                        }}
-                        onCancel={() => setEditingId(null)}
-                      />
-                    </li>
-                  ) : (
-                    <li key={t.id} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40">
-                      <CategoryIcon category={category} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold">{t.description}</p>
-                        <p className="truncate text-xs text-muted-foreground">{category?.name ?? 'Uncategorized'}</p>
-                      </div>
-                      <p
-                        className={`text-sm font-extrabold whitespace-nowrap ${t.type === 'income' ? 'text-primary' : 'text-foreground'}`}
-                      >
-                        {t.type === 'income' ? '+' : '−'}
-                        {formatRM(t.amount)}
-                      </p>
-                      <div className="flex">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingId(t.id)}
-                          aria-label={`Edit ${t.description}`}
-                          title="Edit"
-                          className="text-muted-foreground hover:text-primary"
-                        >
-                          <Pencil />
-                        </Button>
-                        <ConfirmDialog
-                          trigger={
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label={`Delete ${t.description}`}
-                              title="Delete"
-                              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                            >
-                              <Trash2 />
-                            </Button>
-                          }
-                          icon={Trash2}
-                          destructive
-                          title="Delete this transaction?"
-                          description={
-                            <>
-                              “{t.description}” ({t.type === 'income' ? '+' : '−'}
-                              {formatRM(t.amount)} on {format(parseISO(t.date), 'd MMM yyyy')}) will be removed. This
-                              can’t be undone.
-                            </>
-                          }
-                          confirmLabel="Delete"
-                          onConfirm={() => remove(t.id)}
-                        />
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          ))}
+          <TransactionList
+            transactions={transactions}
+            categories={categories}
+            rules={rules}
+            onUpdate={view.update}
+            onRemove={view.remove}
+            highlight={searching ? q : undefined}
+          />
+
+          {partial && (
+            <p className="border-t px-5 py-3 text-center text-xs text-muted-foreground">
+              Showing the newest {SEARCH_LIMIT} of {search.count}. Add a filter to narrow it down.
+            </p>
+          )}
         </Card>
       </div>
     </div>

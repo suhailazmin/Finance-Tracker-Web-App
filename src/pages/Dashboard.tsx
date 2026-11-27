@@ -136,7 +136,7 @@ export default function Dashboard() {
               tone="orange"
               className="lg:col-span-4"
             >
-              <CategoryBreakdown transactions={transactions} categories={categories} />
+              <CategoryBreakdown transactions={transactions} categories={categories} month={month} />
             </SectionCard>
           </div>
 
