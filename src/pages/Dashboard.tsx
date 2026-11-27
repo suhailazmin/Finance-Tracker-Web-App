@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import BudgetSummary from '../components/BudgetSummary'
 import DashboardHero from '../components/DashboardHero'
+import DueRecurring from '../components/DueRecurring'
 import EmptyState from '../components/EmptyState'
 import { ErrorAlert } from '../components/Feedback'
 import GoalsSummary from '../components/GoalsSummary'
@@ -102,6 +103,8 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      <DueRecurring categories={categories} />
 
       {empty ? (
         <Card>

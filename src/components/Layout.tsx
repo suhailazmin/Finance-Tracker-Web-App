@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import {
   ChevronDown,
@@ -7,6 +7,7 @@ import {
   PiggyBank,
   Plus,
   ReceiptText,
+  Repeat,
   Shapes,
   Upload,
   Target,
@@ -17,6 +18,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import ConfirmDialog from './ConfirmDialog'
 import HideAmountsButton from './HideAmountsButton'
+import { runRecurringOnce } from '../lib/recurringRunner'
 import PullToRefresh from './PullToRefresh'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +37,7 @@ const links = [
   { to: '/transactions', label: 'Transactions', short: 'Activity', icon: ReceiptText },
   { to: '/budgets', label: 'Budgets', short: 'Budgets', icon: Target },
   { to: '/goals', label: 'Savings goals', short: 'Goals', icon: PiggyBank },
+  { to: '/recurring', label: 'Recurring', short: 'Recurring', icon: Repeat },
   { to: '/categories', label: 'Categories', short: 'Categories', icon: Shapes },
   { to: '/rules', label: 'Auto-categorize', short: 'Rules', icon: WandSparkles },
 ]
@@ -42,6 +45,11 @@ const links = [
 export default function Layout() {
   const { session } = useAuth()
   const [confirmSignOut, setConfirmSignOut] = useState(false)
+
+  // add any recurring items that have come due (once per app launch)
+  useEffect(() => {
+    runRecurringOnce()
+  }, [])
   const email = session?.user.email ?? ''
 
   return (
@@ -125,6 +133,11 @@ export default function Layout() {
                   <DropdownMenuItem asChild>
                     <Link to="/import">
                       <Upload /> Import statement
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="lg:hidden">
+                    <Link to="/recurring">
+                      <Repeat /> Recurring
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="lg:hidden">
