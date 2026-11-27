@@ -2,6 +2,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import {
   ChevronDown,
+  CloudOff,
   LayoutDashboard,
   LogOut,
   PiggyBank,
@@ -19,6 +20,10 @@ import { useAuth } from '../auth/AuthContext'
 import ConfirmDialog from './ConfirmDialog'
 import HideAmountsButton from './HideAmountsButton'
 import { runRecurringOnce } from '../lib/recurringRunner'
+import { useOnline } from '../lib/online'
+import { flushOutbox, usePending } from '../lib/outbox'
+import { refreshAll } from '../lib/refresh'
+import { toast } from 'sonner'
 import PageLoading from './PageLoading'
 import PullToRefresh from './PullToRefresh'
 import { Button } from '@/components/ui/button'
@@ -47,9 +52,31 @@ export default function Layout() {
   const { session } = useAuth()
   const [confirmSignOut, setConfirmSignOut] = useState(false)
 
-  // add any recurring items that have come due (once per app launch)
+  const online = useOnline()
+  const pending = usePending(session?.user.id)
+
   useEffect(() => {
+    // add any recurring items that have come due (once per app launch)
     runRecurringOnce()
+    // send anything added offline last time
+    void flushOutbox()
+
+    async function onOnline() {
+      const sent = await flushOutbox()
+      if (sent === 0) await refreshAll() // flushOutbox already refreshed if it sent something
+      toast.success('Back online', {
+        description: sent ? `Added ${sent} transaction${sent === 1 ? '' : 's'} you saved offline.` : 'Showing the latest data.',
+      })
+    }
+    function onOffline() {
+      toast('You’re offline', { description: 'Showing your last saved data. New transactions will sync when you’re back.' })
+    }
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
   }, [])
   const email = session?.user.email ?? ''
 
@@ -111,6 +138,25 @@ export default function Layout() {
             </p>
 
             <div className="flex items-center gap-1">
+              {(!online || pending.length > 0) && (
+                <span
+                  role="status"
+                  title={online ? 'Waiting to send transactions added offline' : 'No connection: showing your last saved data'}
+                  className="mr-1 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-bold whitespace-nowrap lg:bg-brand-orange/20 lg:text-brand-orange-ink"
+                >
+                  <CloudOff className="size-3.5" aria-hidden="true" />
+                  {/* phones: icon + count only, so the header doesn't overflow */}
+                  <span className="sr-only sm:not-sr-only">
+                    {online ? '' : 'Offline'}
+                    {pending.length > 0 && `${online ? '' : ' · '}${pending.length} to sync`}
+                  </span>
+                  {pending.length > 0 && (
+                    <span className="sm:hidden" aria-hidden="true">
+                      {pending.length}
+                    </span>
+                  )}
+                </span>
+              )}
               <HideAmountsButton className="hover:bg-white/10 lg:text-muted-foreground lg:hover:bg-muted lg:hover:text-foreground" />
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -197,7 +243,11 @@ export default function Layout() {
         onOpenChange={setConfirmSignOut}
         icon={LogOut}
         title="Sign out of Monetra?"
-        description="You’ll need to sign in again to see your transactions, budgets and goals."
+        description={
+          pending.length > 0
+            ? `${pending.length} transaction${pending.length === 1 ? '' : 's'} you added offline ${pending.length === 1 ? 'hasn’t' : 'haven’t'} synced yet. ${pending.length === 1 ? 'It stays' : 'They stay'} on this device and will sync next time you sign in here.`
+            : 'You’ll need to sign in again to see your transactions, budgets and goals.'
+        }
         confirmLabel="Sign out"
         destructive
         onConfirm={async () => {

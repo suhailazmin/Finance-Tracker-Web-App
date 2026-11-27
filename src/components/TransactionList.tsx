@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { format, isThisYear, parseISO } from 'date-fns'
-import { Pencil, Repeat, Trash2 } from 'lucide-react'
+import { CloudOff, Pencil, Repeat, Trash2 } from 'lucide-react'
 import CategoryIcon from './CategoryIcon'
 import TransactionForm from './TransactionForm'
 import { Button } from '@/components/ui/button'
@@ -64,6 +64,11 @@ export default function TransactionList({ transactions, categories, rules, onUpd
                           <Repeat className="size-3 shrink-0 text-primary" aria-label="Recurring" />
                         )}
                         {category?.name ?? 'Uncategorized'}
+                        {t.source === 'pending' && (
+                          <span className="ml-1 inline-flex items-center gap-1 font-semibold text-brand-orange-ink">
+                            <CloudOff className="size-3 shrink-0" aria-hidden="true" /> Waiting to sync
+                          </span>
+                        )}
                       </p>
                     </div>
                     <p className={`text-sm font-extrabold whitespace-nowrap ${t.type === 'income' ? 'text-primary' : 'text-foreground'}`}>
@@ -71,9 +76,11 @@ export default function TransactionList({ transactions, categories, rules, onUpd
                       {formatRM(t.amount)}
                     </p>
                     <div className="flex">
+                      {/* queued offline entries can't be edited until they've synced */}
                       <Button
                         variant="ghost"
                         size="icon"
+                        disabled={t.source === 'pending'}
                         onClick={() => setEditingId(t.id)}
                         aria-label={`Edit ${t.description}`}
                         title="Edit"

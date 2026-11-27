@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { AuthContext } from './AuthContext'
+import { clearCachedData, forgetOtherUsersData } from '../lib/pwa'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -14,9 +15,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     // Fires on sign in (including returning from the magic link) and sign out
-    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession)
       setLoading(false)
+      if (event === 'SIGNED_OUT') clearCachedData()
+      else if (newSession) forgetOtherUsersData(newSession.user.id)
     })
     return () => data.subscription.unsubscribe()
   }, [])
