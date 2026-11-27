@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { ArrowRight, ArrowUp, FlaskConical, History, ListChecks, Plus, Trash2, WandSparkles, X } from 'lucide-react'
+import { ArrowRight, ArrowUp, FlaskConical, History, ListChecks, Plus, WandSparkles, X } from 'lucide-react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import Field from '../components/Field'
@@ -247,7 +247,7 @@ function RuleList({
 }: {
   rules: CategoryRule[]
   categories: Category[]
-  onRemove: (id: string) => Promise<string | undefined>
+  onRemove: (id: string, detail?: string) => Promise<string | undefined>
 }) {
   const groups = categories
     .map((c) => ({ category: c, rules: rules.filter((r) => r.category_id === c.id) }))
@@ -269,24 +269,15 @@ function RuleList({
                     <title>Checked before other rules</title>
                   </ArrowUp>
                 )}
-                <ConfirmDialog
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      aria-label={`Delete rule ${r.keyword}`}
-                    >
-                      <X />
-                    </Button>
-                  }
-                  icon={Trash2}
-                  destructive
-                  title={`Delete the rule “${r.keyword}”?`}
-                  description={`New transactions containing “${r.keyword}” won’t be categorized as ${g.category.name} any more. Past transactions keep their category.`}
-                  confirmLabel="Delete rule"
-                  onConfirm={() => onRemove(r.id)}
-                />
+                <Button
+                  onClick={() => onRemove(r.id, `${r.keyword} → ${g.category.name}`)}
+                  variant="ghost"
+                  size="icon-xs"
+                  className="rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={`Delete rule ${r.keyword}`}
+                >
+                  <X />
+                </Button>
               </li>
             ))}
           </ul>

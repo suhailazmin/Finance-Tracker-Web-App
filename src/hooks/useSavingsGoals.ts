@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { SavingsGoal, SavingsGoalInput } from '../lib/types'
 
@@ -52,10 +53,11 @@ export function useSavingsGoals() {
     return error?.message
   }
 
-  async function remove(id: string) {
-    const { error } = await supabase.from('savings_goals').delete().eq('id', id)
+  // deletes at once; the toast offers Undo
+  async function remove(id: string, detail?: string) {
+    const error = await deleteWithUndo('savings_goals', id, 'Goal deleted', detail)
     if (!error) refresh()
-    return error?.message
+    return error
   }
 
   // Positive amount adds savings, negative withdraws; never below RM 0

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { CircleCheck, KeyRound, UserRound } from 'lucide-react'
 import { FormMessage } from '../components/Feedback'
+import ExportData from '../components/ExportData'
 import Field from '../components/Field'
 import PageHeader from '../components/PageHeader'
 import SectionCard from '../components/SectionCard'
@@ -100,6 +101,8 @@ export default function Account() {
           )}
         </form>
       </SectionCard>
+
+      <ExportData />
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { addMonths, startOfMonth } from 'date-fns'
 import { LifeBuoy, Minus, Pencil, PiggyBank, Plus, Trash2 } from 'lucide-react'
-import ConfirmDialog from '../components/ConfirmDialog'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import GoalForm from '../components/GoalForm'
 import PageHeader from '../components/PageHeader'
@@ -41,7 +40,7 @@ export default function Goals() {
               goal={g}
               onUpdate={(input) => update(g.id, input)}
               onContribute={(amount) => contribute(g, amount)}
-              onRemove={() => remove(g.id)}
+              onRemove={() => remove(g.id, g.name)}
             />
           ))}
         </div>
@@ -179,25 +178,16 @@ function GoalCard({ goal, onUpdate, onContribute, onRemove }: GoalCardProps) {
           <Button variant="ghost" size="icon" onClick={() => setEditing(true)} aria-label={`Edit ${goal.name}`} title="Edit">
             <Pencil />
           </Button>
-          <ConfirmDialog
-            trigger={
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={`Delete ${goal.name}`}
-                title="Delete"
-                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 />
-              </Button>
-            }
-            icon={Trash2}
-            destructive
-            title={`Delete “${goal.name}”?`}
-            description={`The goal and its ${formatRM(goal.current_amount)} saved so far will be removed from Monetra. This can’t be undone.`}
-            confirmLabel="Delete goal"
-            onConfirm={onRemove}
-          />
+          <Button
+            onClick={onRemove}
+            variant="ghost"
+            size="icon"
+            aria-label={`Delete ${goal.name}`}
+            title="Delete"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 />
+          </Button>
         </div>
       }
     >
