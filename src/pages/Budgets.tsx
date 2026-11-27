@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { addMonths, format, startOfMonth } from 'date-fns'
-import { Copy, Target, Trash2 } from 'lucide-react'
+import { Copy, Target } from 'lucide-react'
 import BudgetMeter from '../components/BudgetMeter'
 import CategoryIcon from '../components/CategoryIcon'
-import ConfirmDialog from '../components/ConfirmDialog'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import PageHeader from '../components/PageHeader'
 import SectionCard from '../components/SectionCard'
@@ -101,7 +100,7 @@ export default function Budgets() {
             spent={spentByCategory.get(c.id) ?? 0}
             pace={pace}
             onSave={(limit) => set(c.id, limit)}
-            onRemove={(b) => remove(b.id)}
+            onRemove={(b) => remove(b.id, `${c.name} · ${formatRM(b.limit_amount)} a month`)}
           />
         ))}
       </div>
@@ -194,19 +193,14 @@ function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps
             {budget ? 'Change limit' : 'Set budget'}
           </Button>
           {budget && (
-            <ConfirmDialog
-              trigger={
-                <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                  Remove
-                </Button>
-              }
-              icon={Trash2}
-              destructive
-              title={`Remove the ${category.name} budget?`}
-              description={`The ${formatRM(budget.limit_amount)} monthly limit will be removed. Your transactions are not affected.`}
-              confirmLabel="Remove budget"
-              onConfirm={() => onRemove(budget)}
-            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemove(budget)}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              Remove
+            </Button>
           )}
         </div>
       )}

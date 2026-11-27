@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { addMonths, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, refreshAll, useRefreshVersion } from '../lib/refresh'
 import { dueOccurrences, monthKey, recurringHash } from '../lib/recurring'
 import type { RecurringInput, RecurringTransaction } from '../lib/types'
@@ -60,7 +61,12 @@ export function useRecurring() {
     add: (input: RecurringInput) => result(supabase.from('recurring_transactions').insert(input), true),
     update: (id: string, input: Partial<RecurringInput>) =>
       result(supabase.from('recurring_transactions').update(input).eq('id', id), true),
-    remove: (id: string) => result(supabase.from('recurring_transactions').delete().eq('id', id)),
+    // deletes at once; the toast offers Undo (transactions it added are kept either way)
+    remove: async (id: string, detail?: string) => {
+      const error = await deleteWithUndo('recurring_transactions', id, 'Recurring item deleted', detail)
+      if (!error) refresh()
+      return error
+    },
     // Resuming continues from this month instead of adding every month it was paused
     setActive: (item: RecurringTransaction, active: boolean) =>
       result(

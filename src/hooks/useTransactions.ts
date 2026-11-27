@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { endOfMonth, format, startOfMonth } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Transaction, TransactionInput } from '../lib/types'
 
@@ -59,10 +60,11 @@ export function useTransactions(month: Date) {
     return error?.message
   }
 
-  async function remove(id: string) {
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
+  // deletes at once; the toast offers Undo
+  async function remove(id: string, detail?: string) {
+    const error = await deleteWithUndo('transactions', id, 'Transaction deleted', detail)
     if (!error) refresh()
-    return error?.message
+    return error
   }
 
   return {

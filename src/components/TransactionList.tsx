@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react'
 import { format, isThisYear, parseISO } from 'date-fns'
 import { Pencil, Repeat, Trash2 } from 'lucide-react'
 import CategoryIcon from './CategoryIcon'
-import ConfirmDialog from './ConfirmDialog'
 import TransactionForm from './TransactionForm'
 import { Button } from '@/components/ui/button'
 import { formatRM } from '../lib/format'
@@ -13,7 +12,7 @@ type Props = {
   categories: Category[]
   rules: CategoryRule[]
   onUpdate: (id: string, input: TransactionInput) => Promise<string | undefined>
-  onRemove: (id: string) => Promise<string | undefined>
+  onRemove: (id: string, detail?: string) => Promise<string | undefined>
   highlight?: string // search text to mark in descriptions
 }
 
@@ -82,30 +81,16 @@ export default function TransactionList({ transactions, categories, rules, onUpd
                       >
                         <Pencil />
                       </Button>
-                      <ConfirmDialog
-                        trigger={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Delete ${t.description}`}
-                            title="Delete"
-                            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 />
-                          </Button>
-                        }
-                        icon={Trash2}
-                        destructive
-                        title="Delete this transaction?"
-                        description={
-                          <>
-                            “{t.description}” ({t.type === 'income' ? '+' : '−'}
-                            {formatRM(t.amount)} on {format(day, 'd MMM yyyy')}) will be removed. This can’t be undone.
-                          </>
-                        }
-                        confirmLabel="Delete"
-                        onConfirm={() => onRemove(t.id)}
-                      />
+                      <Button
+                        onClick={() => onRemove(t.id, `${t.description} · ${t.type === 'income' ? '+' : '−'}${formatRM(t.amount)}`)}
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Delete ${t.description}`}
+                        title="Delete"
+                        className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 />
+                      </Button>
                     </div>
                   </li>
                 )

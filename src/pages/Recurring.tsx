@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react'
 import { addMonths, format, isAfter, startOfDay, startOfMonth } from 'date-fns'
 import { Check, Copy, DatabaseZap, Pause, Pencil, Play, Plus, Repeat, Trash2 } from 'lucide-react'
 import CategoryIcon from '../components/CategoryIcon'
-import ConfirmDialog from '../components/ConfirmDialog'
 import EmptyState from '../components/EmptyState'
 import { ErrorAlert, FormMessage } from '../components/Feedback'
 import Field from '../components/Field'
@@ -86,7 +85,7 @@ export default function Recurring() {
                       categories={categories}
                       rules={rules}
                       onUpdate={(input) => update(item.id, input)}
-                      onRemove={() => remove(item.id)}
+                      onRemove={() => remove(item.id, item.description)}
                       onToggle={() => setActive(item, !item.active)}
                     />
                   ))}
@@ -356,25 +355,16 @@ function RecurringRow({ item, categories, rules, onUpdate, onRemove, onToggle }:
         >
           <Pencil />
         </Button>
-        <ConfirmDialog
-          trigger={
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`Delete ${item.description}`}
-              title="Delete"
-              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 />
-            </Button>
-          }
-          icon={Trash2}
-          destructive
-          title={`Stop “${item.description}”?`}
-          description="It won’t be added in future months. Transactions it already added are kept."
-          confirmLabel="Delete"
-          onConfirm={onRemove}
-        />
+        <Button
+          onClick={onRemove}
+          variant="ghost"
+          size="icon"
+          aria-label={`Delete ${item.description}`}
+          title="Delete"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 />
+        </Button>
       </div>
     </li>
   )
