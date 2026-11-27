@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { SavingsGoal, SavingsGoalInput } from '../lib/types'
 
 export function useSavingsGoals() {
+  // reload when the user pulls to refresh
+  const refreshVersion = useRefreshVersion()
   const [version, setVersion] = useState(0)
   const [goals, setGoals] = useState<SavingsGoal[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -10,11 +13,13 @@ export function useSavingsGoals() {
 
   useEffect(() => {
     let ignore = false
+    const done = beginLoad()
     supabase
       .from('savings_goals')
       .select('id, name, target_amount, current_amount, target_date')
       .order('name')
       .then(({ data, error }) => {
+        done()
         if (ignore) return
         setError(error?.message ?? '')
         // numeric columns come back as strings from PostgREST
@@ -29,8 +34,9 @@ export function useSavingsGoals() {
       })
     return () => {
       ignore = true
+      done()
     }
-  }, [version])
+  }, [version, refreshVersion])
 
   const refresh = () => setVersion((v) => v + 1)
 

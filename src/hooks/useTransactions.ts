@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { endOfMonth, format, startOfMonth } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Transaction, TransactionInput } from '../lib/types'
 
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd')
@@ -9,6 +10,8 @@ type Result = { key: string; transactions: Transaction[]; error: string }
 
 // Transactions for one calendar month, newest first, plus add/edit/delete
 export function useTransactions(month: Date) {
+  // reload when the user pulls to refresh
+  const refreshVersion = useRefreshVersion()
   const [version, setVersion] = useState(0)
   const [result, setResult] = useState<Result>({ key: '', transactions: [], error: '' })
 
@@ -18,6 +21,7 @@ export function useTransactions(month: Date) {
 
   useEffect(() => {
     let ignore = false
+    const done = beginLoad()
     supabase
       .from('transactions')
       .select('id, date, description, amount, type, category_id, source')
@@ -26,6 +30,7 @@ export function useTransactions(month: Date) {
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
+        done()
         if (ignore) return
         setResult({
           key,
@@ -36,8 +41,9 @@ export function useTransactions(month: Date) {
       })
     return () => {
       ignore = true
+      done()
     }
-  }, [from, to, key])
+  }, [from, to, key, refreshVersion])
 
   const refresh = () => setVersion((v) => v + 1)
 
