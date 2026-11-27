@@ -1,9 +1,11 @@
 import { Suspense, useEffect, useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { startOfMonth } from 'date-fns'
 import {
   ChevronDown,
   CloudOff,
   LayoutDashboard,
+  Ellipsis,
   LogOut,
   Moon,
   PiggyBank,
@@ -39,17 +41,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { useBudgets } from '../hooks/useBudgets'
 import monetraIcon from '../assets/monetra-icon.png'
+import { friendlyError } from '../lib/errors'
 
+// One name per page, used in the sidebar, the phone tab bar, the More menu and the page title
 const links = [
-  { to: '/', label: 'Dashboard', short: 'Home', icon: LayoutDashboard },
-  { to: '/transactions', label: 'Transactions', short: 'Activity', icon: ReceiptText },
-  { to: '/budgets', label: 'Budgets', short: 'Budgets', icon: Target },
-  { to: '/goals', label: 'Savings goals', short: 'Goals', icon: PiggyBank },
-  { to: '/recurring', label: 'Recurring', short: 'Recurring', icon: Repeat },
-  { to: '/categories', label: 'Categories', short: 'Categories', icon: Shapes },
-  { to: '/rules', label: 'Auto-categorize', short: 'Rules', icon: WandSparkles },
+  { to: '/', label: 'Dashboard', hint: 'Your month at a glance', icon: LayoutDashboard },
+  { to: '/transactions', label: 'Transactions', hint: 'Everything you earned and spent', icon: ReceiptText },
+  { to: '/budgets', label: 'Budgets', hint: 'Monthly spending limits', icon: Target },
+  { to: '/goals', label: 'Savings goals', hint: 'What you’re saving towards', icon: PiggyBank },
+  { to: '/recurring', label: 'Recurring', hint: 'Salary, rent and bills each month', icon: Repeat },
+  { to: '/import', label: 'Import statement', hint: 'Add transactions from a bank CSV', icon: Upload },
+  { to: '/categories', label: 'Categories', hint: 'Groups for spending and income', icon: Shapes },
+  { to: '/rules', label: 'Auto-categorize', hint: 'Keywords that pick a category', icon: WandSparkles },
 ]
+// phones: the first three are tabs, the rest (and Account) sit under "More"
+const tabLinks = links.slice(0, 3)
+const moreLinks = [...links.slice(3), { to: '/account', label: 'Account', hint: 'Password, appearance and your data', icon: UserRound }]
 
 export default function Layout() {
   const { session } = useAuth()
@@ -83,6 +92,8 @@ export default function Layout() {
     }
   }, [])
   const email = session?.user.email ?? ''
+  const { pathname } = useLocation()
+  const moreActive = moreLinks.some((l) => pathname.startsWith(l.to))
 
   return (
     <div className="app-backdrop min-h-svh">
@@ -114,19 +125,8 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* Tip card, like a promo panel */}
-        <div className="relative mt-auto overflow-hidden rounded-2xl bg-brand-ink p-4 text-white">
-          <span className="pointer-events-none absolute -top-8 -right-8 size-28 rounded-full bg-white/5" aria-hidden="true" />
-          <span className="pointer-events-none absolute -right-2 bottom-10 size-14 rounded-full bg-brand-orange/20" aria-hidden="true" />
-          <img src={monetraIcon} alt="" width={44} height={44} className="relative size-11" />
-          <p className="relative mt-3 text-sm font-bold">Stay on track</p>
-          <p className="relative mt-1 text-xs leading-relaxed text-white/75">
-            Set a monthly limit for each category and Monetra warns you before you overspend.
-          </p>
-          <Button asChild size="sm" className="relative mt-3 bg-brand-orange font-bold text-brand-ink hover:bg-brand-orange/90">
-            <Link to="/budgets">Set budgets</Link>
-          </Button>
-        </div>
+        {/* re-checked on every page change, so it goes away once a budget is set */}
+        {pathname !== '/budgets' && <BudgetTip key={pathname} />}
       </aside>
 
       <div className="lg:pl-64">
@@ -184,26 +184,6 @@ export default function Layout() {
                   <DropdownMenuItem onSelect={() => setThemePref(dark ? 'light' : 'dark')}>
                     {dark ? <Sun /> : <Moon />} {dark ? 'Light mode' : 'Dark mode'}
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/import">
-                      <Upload /> Import statement
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="lg:hidden">
-                    <Link to="/recurring">
-                      <Repeat /> Recurring
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="lg:hidden">
-                    <Link to="/categories">
-                      <Shapes /> Categories
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="lg:hidden">
-                    <Link to="/rules">
-                      <WandSparkles /> Auto-categorize rules
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onSelect={() => setConfirmSignOut(true)}>
                     <LogOut /> Sign out
@@ -229,7 +209,7 @@ export default function Layout() {
         aria-label="Main"
       >
         <div className="mx-auto flex h-16 max-w-sm items-center justify-between rounded-full bg-brand-ink px-2 shadow-xl shadow-brand-ink/30 ring-1 ring-white/10">
-          {links.slice(0, 2).map((l) => (
+          {tabLinks.slice(0, 2).map((l) => (
             <TabLink key={l.to} {...l} />
           ))}
           <Link
@@ -239,9 +219,33 @@ export default function Layout() {
           >
             <Plus className="size-6" strokeWidth={2.5} aria-hidden="true" />
           </Link>
-          {links.slice(2, 4).map((l) => (
-            <TabLink key={l.to} {...l} />
-          ))}
+          <TabLink {...tabLinks[2]} />
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                'flex h-12 min-w-16 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
+                moreActive ? 'bg-white/12 text-brand-sage' : 'text-white/55 hover:text-white'
+              )}
+            >
+              <Ellipsis className="size-5" aria-hidden="true" />
+              More
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="end" sideOffset={12} className="w-72 rounded-2xl p-1.5">
+              {moreLinks.map(({ to, label, hint, icon: Icon }) => (
+                <DropdownMenuItem key={to} asChild className="gap-3 rounded-xl px-2.5 py-2">
+                  <Link to={to} aria-current={pathname.startsWith(to) ? 'page' : undefined}>
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
+                      <Icon className="size-[18px]" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold">{label}</span>
+                      <span className="block text-xs text-muted-foreground">{hint}</span>
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </nav>
 
@@ -259,27 +263,48 @@ export default function Layout() {
         destructive
         onConfirm={async () => {
           const { error } = await supabase.auth.signOut()
-          return error?.message
+          return friendlyError(error) || undefined
         }}
       />
     </div>
   )
 }
 
-function TabLink({ to, short, icon: Icon }: (typeof links)[number]) {
+function TabLink({ to, label, icon: Icon }: (typeof links)[number]) {
   return (
     <NavLink
       to={to}
       end
       className={({ isActive }) =>
         cn(
-          'flex h-12 w-14 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
+          'flex h-12 min-w-16 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
           isActive ? 'bg-white/12 text-brand-sage' : 'text-white/55 hover:text-white'
         )
       }
     >
       <Icon className="size-5" aria-hidden="true" />
-      {short}
+      {label}
     </NavLink>
+  )
+}
+
+// Sidebar tip, like a promo panel: shown only while this month has no budgets
+function BudgetTip() {
+  const [month] = useState(() => startOfMonth(new Date()))
+  const { budgets, loading } = useBudgets(month)
+  if (loading || budgets.length > 0) return null
+  return (
+    <div className="relative mt-auto overflow-hidden rounded-2xl bg-brand-ink p-4 text-white">
+      <span className="pointer-events-none absolute -top-8 -right-8 size-28 rounded-full bg-white/5" aria-hidden="true" />
+      <span className="pointer-events-none absolute -right-2 bottom-10 size-14 rounded-full bg-brand-orange/20" aria-hidden="true" />
+      <img src={monetraIcon} alt="" width={44} height={44} className="relative size-11" />
+      <p className="relative mt-3 text-sm font-bold">Stay on track</p>
+      <p className="relative mt-1 text-xs leading-relaxed text-white/75">
+        Set a monthly limit for each category and Monetra warns you before you overspend.
+      </p>
+      <Button asChild size="sm" className="relative mt-3 bg-brand-orange font-bold text-brand-ink hover:bg-brand-orange/90">
+        <Link to="/budgets">Set budgets</Link>
+      </Button>
+    </div>
   )
 }

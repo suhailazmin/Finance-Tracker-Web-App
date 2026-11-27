@@ -5,6 +5,7 @@ import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, refreshAll, useRefreshVersion } from '../lib/refresh'
 import { dueOccurrences, monthKey, recurringHash } from '../lib/recurring'
 import type { RecurringInput, RecurringTransaction } from '../lib/types'
+import { friendlyError } from '../lib/errors'
 
 const COLUMNS = 'id, description, amount, type, category_id, day_of_month, start_month, last_month, auto_add, active'
 
@@ -33,7 +34,7 @@ export function useRecurring() {
         done()
         if (ignore) return
         setMissingTable(isMissingTable(error))
-        setError(error && !isMissingTable(error) ? error.message : '')
+        setError(error && !isMissingTable(error) ? friendlyError(error) : '')
         setItems(((data ?? []) as RecurringTransaction[]).map(toRecurring))
         setLoaded(true)
       })
@@ -46,7 +47,7 @@ export function useRecurring() {
   const refresh = () => setVersion((v) => v + 1)
   const result = async (p: PromiseLike<{ error: { message: string } | null }>, thenPostDue = false) => {
     const { error } = await p
-    if (error) return error.message
+    if (error) return friendlyError(error)
     // e.g. a new item whose day has already passed this month is added straight away
     if (thenPostDue) await postDueRecurring()
     refresh()

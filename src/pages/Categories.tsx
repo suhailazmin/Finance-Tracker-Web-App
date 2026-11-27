@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { categoryUsage, useCategories, type CategoryInput, type CategoryUsage } from '../hooks/useCategories'
 import type { Category, TransactionType } from '../lib/types'
+import { toast } from 'sonner'
 
 export default function Categories() {
   const { categories, loaded, error, add, update, remove } = useCategories()
@@ -88,7 +89,8 @@ function AddCategoryForm({ categories, onAdd }: { categories: Category[]; onAdd:
     if (error) {
       setMessage({ ok: false, text: error })
     } else {
-      setMessage({ ok: true, text: `Added “${clean}”.` })
+      setMessage(null)
+      toast.success('Category added', { description: clean })
       setName('')
     }
   }
@@ -159,8 +161,9 @@ function CategoryRow({ category, onSave, onRemove }: RowProps) {
     setBusy(true)
     const message = await onSave({ name: clean, color })
     setBusy(false)
-    if (message) setError(message)
-    else setEditing(false)
+    if (message) return setError(message)
+    setEditing(false)
+    toast.success('Category saved', { description: clean })
   }
 
   function askToDelete() {

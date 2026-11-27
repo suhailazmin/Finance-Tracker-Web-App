@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Budget } from '../lib/types'
+import { friendlyError } from '../lib/errors'
 
 const monthKey = (d: Date) => format(startOfMonth(d), 'yyyy-MM-dd')
 
@@ -31,7 +32,7 @@ export function useBudgets(month: Date) {
         if (ignore) return
         setResult({
           key,
-          error: error?.message ?? '',
+          error: friendlyError(error),
           // numeric columns come back as strings from PostgREST
           budgets: ((data ?? []) as Budget[]).map((b) => ({ ...b, limit_amount: Number(b.limit_amount) })),
         })
@@ -52,7 +53,7 @@ export function useBudgets(month: Date) {
         { onConflict: 'user_id,category_id,month' }
       )
     if (!error) refresh()
-    return error?.message
+    return friendlyError(error) || undefined
   }
 
   // deletes at once; the toast offers Undo
@@ -69,7 +70,7 @@ export function useBudgets(month: Date) {
       .from('budgets')
       .select('category_id, limit_amount')
       .eq('month', previous)
-    if (error) return { error: error.message, copied: 0 }
+    if (error) return { error: friendlyError(error), copied: 0 }
     if (!data?.length) return { error: '', copied: 0 }
 
     const insert = await supabase.from('budgets').upsert(
@@ -77,7 +78,7 @@ export function useBudgets(month: Date) {
       { onConflict: 'user_id,category_id,month', ignoreDuplicates: true }
     )
     if (!insert.error) refresh()
-    return { error: insert.error?.message ?? '', copied: data.length }
+    return { error: friendlyError(insert.error), copied: data.length }
   }
 
   return {

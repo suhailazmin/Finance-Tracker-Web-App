@@ -3,6 +3,7 @@ import { addMonths, endOfMonth, format, parseISO, startOfMonth } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import { addRM } from '../lib/money'
+import { friendlyError } from '../lib/errors'
 
 export type MonthTotal = {
   month: string // yyyy-MM
@@ -45,7 +46,7 @@ export function useMonthlyTotals(month: Date, count = 6) {
           if (row.type === 'income') bucket.income = addRM(bucket.income, Number(row.amount))
           else bucket.expenses = addRM(bucket.expenses, Number(row.amount))
         }
-        setResult({ key, totals, error: error?.message ?? '' })
+        setResult({ key, totals, error: friendlyError(error) })
       })
     return () => {
       ignore = true

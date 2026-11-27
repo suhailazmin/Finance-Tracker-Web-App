@@ -14,6 +14,7 @@ import { useSavingsGoals } from '../hooks/useSavingsGoals'
 import { formatRM } from '../lib/format'
 import { EMERGENCY_FUND_NAME, averageMonthlyExpenses, roundUpTo100 } from '../lib/goals'
 import type { SavingsGoal, SavingsGoalInput } from '../lib/types'
+import { toast } from 'sonner'
 
 // Positive RM amount with at most 2 decimal places
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
@@ -147,7 +148,8 @@ function GoalCard({ goal, onUpdate, onContribute, onRemove }: GoalCardProps) {
     if (error) {
       setMessage({ ok: false, text: error })
     } else {
-      setMessage({ ok: true, text: `${direction === 1 ? 'Added' : 'Withdrew'} ${formatRM(value)}.` })
+      setMessage(null)
+      toast.success(`${direction === 1 ? 'Added' : 'Withdrew'} ${formatRM(value)}`, { description: goal.name })
       setAmount('')
     }
   }

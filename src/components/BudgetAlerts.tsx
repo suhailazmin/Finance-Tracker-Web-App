@@ -38,14 +38,14 @@ export default function BudgetAlerts({ budgets, categories, transactions, recurr
 
   return (
     <SectionCard
-      title="Budget alerts"
-      description={`Forecast to ${format(endOfMonth(today), 'd MMM')}`}
+      title="Budgets"
+      description={`Where they’ll be by ${format(endOfMonth(today), 'd MMM')} at this pace`}
       icon={ShieldAlert}
       tone={rows.length ? 'orange' : 'green'}
       className={className}
       actions={
         <Button asChild variant="ghost" size="sm" className="font-bold text-primary hover:text-primary">
-          <Link to="/budgets">Budgets</Link>
+          <Link to="/budgets">See all</Link>
         </Button>
       }
     >
@@ -70,13 +70,13 @@ export default function BudgetAlerts({ budgets, categories, transactions, recurr
                 <p className="text-muted-foreground">
                   {r.outlook === 'over' ? (
                     <>
-                      Spent {formatRM(r.spent)} of {formatRM(r.budget.limit_amount)}, on pace for{' '}
-                      <strong className="text-foreground">{formatRM(Math.round(r.projected))}</strong>
+                      Spent {formatRM(r.spent)} of {formatRM(r.budget.limit_amount)}. Heading for about{' '}
+                      <strong className="text-foreground">{formatRM(Math.round(r.projected))}</strong> by month end
                     </>
                   ) : (
                     <>
-                      On pace for <strong className="text-foreground">{formatRM(Math.round(r.projected))}</strong> of{' '}
-                      {formatRM(r.budget.limit_amount)}, about {formatRM(Math.round(r.projected - r.budget.limit_amount))} over
+                      Heading for about <strong className="text-foreground">{formatRM(Math.round(r.projected))}</strong> of{' '}
+                      {formatRM(r.budget.limit_amount)} by month end, about {formatRM(Math.round(r.projected - r.budget.limit_amount))} over
                     </>
                   )}
                 </p>

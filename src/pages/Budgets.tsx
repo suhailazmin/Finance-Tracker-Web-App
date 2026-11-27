@@ -19,6 +19,7 @@ import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
 import type { Budget, Category } from '../lib/types'
 import { sumRM } from '../lib/money'
+import { toast } from 'sonner'
 
 // Positive RM amount with at most 2 decimal places
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
@@ -50,7 +51,10 @@ export default function Budgets() {
 
   async function handleCopy() {
     const { error, copied } = await copyFromPreviousMonth()
-    setCopyMessage(error || (copied ? `Copied ${copied} budget${copied === 1 ? '' : 's'} from ${previousName}.` : `No budgets in ${previousName} to copy.`))
+    if (error) return setCopyMessage(error)
+    setCopyMessage('')
+    if (copied) toast.success(`Copied ${copied} budget${copied === 1 ? '' : 's'} from ${previousName}`)
+    else toast(`No budgets in ${previousName} to copy`)
   }
 
   return (
@@ -90,7 +94,7 @@ export default function Budgets() {
             <Copy />
             Copy {previousName}’s budgets
           </Button>
-          {copyMessage && <p className="mt-2 text-sm text-muted-foreground">{copyMessage}</p>}
+          {copyMessage && <FormMessage className="mt-2">{copyMessage}</FormMessage>}
         </SectionCard>
       )}
 
@@ -144,8 +148,9 @@ function BudgetRow({ category, budget, spent, pace, projected, onSave, onRemove 
     setBusy(true)
     const message = await onSave(Number(clean))
     setBusy(false)
-    if (message) setError(message)
-    else setEditing(false)
+    if (message) return setError(message)
+    setEditing(false)
+    toast.success(`${category.name} budget saved`, { description: `${formatRM(Number(clean))} a month` })
   }
 
   return (
@@ -172,8 +177,8 @@ function BudgetRow({ category, budget, spent, pace, projected, onSave, onRemove 
           {projected !== undefined && projected > 0 && spent <= budget.limit_amount && (
             <p className={`mt-1.5 text-xs ${projected > budget.limit_amount ? 'font-semibold text-brand-orange-ink' : 'text-muted-foreground'}`}>
               {projected > budget.limit_amount
-                ? `Heading over: on pace for ${formatRM(Math.round(projected))} by month end`
-                : `On pace for ${formatRM(Math.round(projected))} by month end`}
+                ? `Heading over: about ${formatRM(Math.round(projected))} by month end at this pace`
+                : `About ${formatRM(Math.round(projected))} by month end at this pace`}
             </p>
           )}
         </div>
@@ -209,7 +214,7 @@ function BudgetRow({ category, budget, spent, pace, projected, onSave, onRemove 
               variant="ghost"
               size="sm"
               onClick={() => onRemove(budget)}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
               Remove
             </Button>

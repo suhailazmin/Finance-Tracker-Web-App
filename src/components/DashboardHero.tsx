@@ -28,7 +28,7 @@ export default function DashboardHero({ month, balance, income }: { month: Date;
 
       <div className="relative mt-4">
         <div className="flex items-center gap-1.5">
-          <p className="text-sm text-white/75">Total balance</p>
+          <p className="text-sm text-white/75">Balance</p>
           <HideAmountsButton className="size-7 text-white/80 hover:bg-white/15 hover:text-white [&_svg]:size-4" />
         </div>
         <p className="text-4xl font-extrabold tracking-tight sm:text-[2.75rem]">{formatRM(balance)}</p>
@@ -37,8 +37,8 @@ export default function DashboardHero({ month, balance, income }: { month: Date;
           {kept === null
             ? 'No income recorded this month'
             : kept >= 0
-              ? `You kept ${kept}% of your income`
-              : `Spending is ${formatRM(-balance)} over income`}
+              ? `Income minus spending in ${format(month, 'MMMM')}`
+              : `You’ve spent ${formatRM(-balance)} more than you earned`}
         </p>
       </div>
     </section>

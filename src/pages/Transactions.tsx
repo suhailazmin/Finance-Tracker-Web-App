@@ -23,6 +23,7 @@ import { chartColors } from '../lib/chartTheme'
 import { formatRM } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
 import { sumRM } from '../lib/money'
+import { friendlyError } from '../lib/errors'
 
 type Scope = 'month' | 'all'
 
@@ -120,7 +121,7 @@ export default function Transactions() {
       )
       if (result.saved) toast.success('Exported', { description: `${result.filename} · ${result.rows} transaction${result.rows === 1 ? '' : 's'}` })
     } catch (e) {
-      toast.error('Couldn’t export', { description: (e as Error).message })
+      toast.error('Couldn’t export', { description: friendlyError((e as Error).message) })
     } finally {
       setExporting(false)
     }
@@ -137,7 +138,7 @@ export default function Transactions() {
           <div className="flex flex-wrap items-center gap-2">
             <Button asChild variant="outline">
               <Link to="/import">
-                <Upload /> Import CSV
+                <Upload /> Import statement
               </Link>
             </Button>
             <MonthPicker month={month} onChange={setMonth} />

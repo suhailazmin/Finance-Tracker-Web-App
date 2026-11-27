@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { CircleCheck, KeyRound, UserRound } from 'lucide-react'
+import { KeyRound, UserRound } from 'lucide-react'
 import { FormMessage } from '../components/Feedback'
 import AppearanceCard from '../components/AppearanceCard'
 import ExportData from '../components/ExportData'
@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
+import { friendlyError } from '../lib/errors'
+import { toast } from 'sonner'
 
 const providerNames: Record<string, string> = { email: 'Email', google: 'Google' }
 
@@ -21,14 +23,12 @@ export default function Account() {
   const [confirm, setConfirm] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [saved, setSaved] = useState(false)
 
   const user = session?.user
   const providers = user?.app_metadata.providers as string[] | undefined
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setSaved(false)
     if (password !== confirm) {
       setError('The two passwords do not match.')
       return
@@ -37,10 +37,10 @@ export default function Account() {
     const { error } = await supabase.auth.updateUser({ password })
     setBusy(false)
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error, { keepUnknown: true }))
     } else {
       setError('')
-      setSaved(true)
+      toast.success('Password saved', { description: 'You can now sign in with your email and password.' })
       setPassword('')
       setConfirm('')
     }
@@ -94,12 +94,6 @@ export default function Account() {
             {busy ? 'Saving…' : 'Save password'}
           </Button>
           {error && <FormMessage>{error}</FormMessage>}
-          {saved && (
-            <FormMessage ok className="flex items-center gap-1.5">
-              <CircleCheck className="size-4" aria-hidden="true" />
-              Password saved. You can now sign in with it.
-            </FormMessage>
-          )}
         </form>
       </SectionCard>
 

@@ -1,4 +1,5 @@
 import { budgetStatus, statusStyle } from '../lib/budget'
+import { chartColors } from '../lib/chartTheme'
 import { formatRM } from '../lib/format'
 import { sumRM } from '../lib/money'
 
@@ -14,17 +15,20 @@ export default function BudgetMeter({ spent, limit, pace }: Props) {
   const style = statusStyle[status]
   const used = limit > 0 ? spent / limit : 0
   const left = sumRM([limit, -spent])
+  // spending is orange everywhere in Monetra; the bar only turns red once it goes over.
+  // Status is also shown by the icon and label underneath.
+  const fill = status === 'over' ? style.color : chartColors.expenses
 
   return (
     <div>
       <div
         className="relative h-2.5 rounded-full"
-        style={{ backgroundColor: `color-mix(in srgb, ${style.color} 15%, transparent)` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${fill} 18%, transparent)` }}
         title={`${Math.round(used * 100)}% used`}
       >
         <div
           className="h-full rounded-full"
-          style={{ width: `${Math.min(used, 1) * 100}%`, backgroundColor: style.color }}
+          style={{ width: `${Math.min(used, 1) * 100}%`, backgroundColor: fill }}
         />
         {pace !== undefined && pace > 0 && pace < 1 && (
           <div
