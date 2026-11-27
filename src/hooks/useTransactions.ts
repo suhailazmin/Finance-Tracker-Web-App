@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { endOfMonth, format, startOfMonth } from 'date-fns'
+import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../auth/AuthContext'
+import { isOfflineError } from '../lib/online'
+import { PENDING_PREFIX, pendingAsTransaction, queueTransaction, removePending, usePending } from '../lib/outbox'
 import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Transaction, TransactionInput } from '../lib/types'
@@ -50,6 +54,12 @@ export function useTransactions(month: Date) {
 
   async function add(input: TransactionInput) {
     const { error } = await supabase.from('transactions').insert(input)
+    if (error && isOfflineError(error)) {
+      // no connection: keep it on this device and send it when we're back online
+      await queueTransaction(input)
+      toast('Saved on this device', { description: 'It will be added to Monetra when you’re back online.' })
+      return undefined
+    }
     if (!error) refresh()
     return error?.message
   }
@@ -62,13 +72,26 @@ export function useTransactions(month: Date) {
 
   // deletes at once; the toast offers Undo
   async function remove(id: string, detail?: string) {
+    if (id.startsWith(PENDING_PREFIX)) {
+      removePending(id.slice(PENDING_PREFIX.length)) // not sent yet: just drop it from the queue
+      return undefined
+    }
     const error = await deleteWithUndo('transactions', id, 'Transaction deleted', detail)
     if (!error) refresh()
     return error
   }
 
+  // entries added offline for this month, shown with "Waiting to sync"
+  const { session } = useAuth()
+  const queued = usePending(session?.user.id)
+    .filter((p) => p.input.date >= from && p.input.date <= to)
+    .map(pendingAsTransaction)
+  const transactions = queued.length
+    ? [...queued, ...result.transactions].sort((a, b) => b.date.localeCompare(a.date))
+    : result.transactions
+
   return {
-    transactions: result.transactions,
+    transactions,
     error: result.error,
     loading: result.key !== key,
     add,

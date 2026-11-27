@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import {
   ChevronDown,
+  CloudOff,
   LayoutDashboard,
   LogOut,
+  Moon,
   PiggyBank,
   Plus,
   ReceiptText,
   Repeat,
   Shapes,
+  Sun,
   Upload,
   Target,
   UserRound,
@@ -19,6 +22,12 @@ import { useAuth } from '../auth/AuthContext'
 import ConfirmDialog from './ConfirmDialog'
 import HideAmountsButton from './HideAmountsButton'
 import { runRecurringOnce } from '../lib/recurringRunner'
+import { useOnline } from '../lib/online'
+import { setThemePref, useTheme } from '../lib/theme'
+import { flushOutbox, usePending } from '../lib/outbox'
+import { refreshAll } from '../lib/refresh'
+import { toast } from 'sonner'
+import PageLoading from './PageLoading'
 import PullToRefresh from './PullToRefresh'
 import { Button } from '@/components/ui/button'
 import {
@@ -46,17 +55,40 @@ export default function Layout() {
   const { session } = useAuth()
   const [confirmSignOut, setConfirmSignOut] = useState(false)
 
-  // add any recurring items that have come due (once per app launch)
+  const online = useOnline()
+  const { dark } = useTheme()
+  const pending = usePending(session?.user.id)
+
   useEffect(() => {
+    // add any recurring items that have come due (once per app launch)
     runRecurringOnce()
+    // send anything added offline last time
+    void flushOutbox()
+
+    async function onOnline() {
+      const sent = await flushOutbox()
+      if (sent === 0) await refreshAll() // flushOutbox already refreshed if it sent something
+      toast.success('Back online', {
+        description: sent ? `Added ${sent} transaction${sent === 1 ? '' : 's'} you saved offline.` : 'Showing the latest data.',
+      })
+    }
+    function onOffline() {
+      toast('You’re offline', { description: 'Showing your last saved data. New transactions will sync when you’re back.' })
+    }
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
   }, [])
   const email = session?.user.email ?? ''
 
   return (
     <div className="app-backdrop min-h-svh">
       {/* ---------- Desktop sidebar ---------- */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border/70 bg-white/80 px-4 py-6 backdrop-blur-md lg:flex">
-        <Link to="/" className="flex items-center gap-2.5 px-2 text-xl font-extrabold tracking-tight text-brand-forest">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border/70 bg-card/80 px-4 py-6 backdrop-blur-md lg:flex">
+        <Link to="/" className="flex items-center gap-2.5 px-2 text-xl font-extrabold tracking-tight text-brand-forest dark:text-primary">
           <img src={monetraIcon} alt="" width={40} height={40} className="size-10" />
           Monetra
         </Link>
@@ -99,7 +131,7 @@ export default function Layout() {
 
       <div className="lg:pl-64">
         {/* ---------- Top bar: green on phones, light on desktop ---------- */}
-        <header className="sticky top-0 z-10 bg-primary pt-[env(safe-area-inset-top)] text-primary-foreground lg:border-b lg:border-border/70 lg:bg-white/70 lg:text-foreground lg:backdrop-blur-md">
+        <header className="sticky top-0 z-10 bg-brand-forest pt-[env(safe-area-inset-top)] text-white lg:border-b lg:border-border/70 lg:bg-card/70 lg:text-foreground lg:backdrop-blur-md">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:px-8">
             <Link to="/" className="flex items-center gap-2 text-lg font-extrabold tracking-tight lg:hidden">
               <img src={monetraIcon} alt="" width={36} height={36} className="size-9 rounded-full bg-white/90 p-0.5" />
@@ -110,6 +142,25 @@ export default function Layout() {
             </p>
 
             <div className="flex items-center gap-1">
+              {(!online || pending.length > 0) && (
+                <span
+                  role="status"
+                  title={online ? 'Waiting to send transactions added offline' : 'No connection: showing your last saved data'}
+                  className="mr-1 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-bold whitespace-nowrap lg:bg-brand-orange/20 lg:text-brand-orange-ink"
+                >
+                  <CloudOff className="size-3.5" aria-hidden="true" />
+                  {/* phones: icon + count only, so the header doesn't overflow */}
+                  <span className="sr-only sm:not-sr-only">
+                    {online ? '' : 'Offline'}
+                    {pending.length > 0 && `${online ? '' : ' · '}${pending.length} to sync`}
+                  </span>
+                  {pending.length > 0 && (
+                    <span className="sm:hidden" aria-hidden="true">
+                      {pending.length}
+                    </span>
+                  )}
+                </span>
+              )}
               <HideAmountsButton className="hover:bg-white/10 lg:text-muted-foreground lg:hover:bg-muted lg:hover:text-foreground" />
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -129,6 +180,9 @@ export default function Layout() {
                     <Link to="/account">
                       <UserRound /> Account
                     </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setThemePref(dark ? 'light' : 'dark')}>
+                    {dark ? <Sun /> : <Moon />} {dark ? 'Light mode' : 'Dark mode'}
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/import">
@@ -163,7 +217,9 @@ export default function Layout() {
         <PullToRefresh />
 
         <main className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:px-8 lg:pt-8 lg:pb-12">
-          <Outlet />
+          <Suspense fallback={<PageLoading />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 
@@ -194,7 +250,11 @@ export default function Layout() {
         onOpenChange={setConfirmSignOut}
         icon={LogOut}
         title="Sign out of Monetra?"
-        description="You’ll need to sign in again to see your transactions, budgets and goals."
+        description={
+          pending.length > 0
+            ? `${pending.length} transaction${pending.length === 1 ? '' : 's'} you added offline ${pending.length === 1 ? 'hasn’t' : 'haven’t'} synced yet. ${pending.length === 1 ? 'It stays' : 'They stay'} on this device and will sync next time you sign in here.`
+            : 'You’ll need to sign in again to see your transactions, budgets and goals.'
+        }
         confirmLabel="Sign out"
         destructive
         onConfirm={async () => {

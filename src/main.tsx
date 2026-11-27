@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import { AuthProvider } from './auth/AuthProvider'
 import Root from './Root'
+import { startServiceWorker } from './lib/pwa'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -14,3 +15,6 @@ createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// offline support (does nothing in `npm run dev`)
+startServiceWorker()

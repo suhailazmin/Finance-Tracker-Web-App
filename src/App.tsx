@@ -1,18 +1,21 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { RequireAuth } from './auth/RequireAuth'
 import Layout from './components/Layout'
-import Account from './pages/Account'
-import Budgets from './pages/Budgets'
-import Categories from './pages/Categories'
-import Dashboard from './pages/Dashboard'
-import Goals from './pages/Goals'
-import Import from './pages/Import'
-import Recurring from './pages/Recurring'
-import Login from './pages/Login'
-import Rules from './pages/Rules'
-import Transactions from './pages/Transactions'
+
+// Each page is its own file, downloaded the first time it is opened, so launching only
+// loads the shell and the page you land on (charts, CSV tools etc. come with their pages)
+const Account = lazy(() => import('./pages/Account'))
+const Budgets = lazy(() => import('./pages/Budgets'))
+const Categories = lazy(() => import('./pages/Categories'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Goals = lazy(() => import('./pages/Goals'))
+const Import = lazy(() => import('./pages/Import'))
+const Recurring = lazy(() => import('./pages/Recurring'))
+const Login = lazy(() => import('./pages/Login'))
+const Rules = lazy(() => import('./pages/Rules'))
+const Transactions = lazy(() => import('./pages/Transactions'))
 import { hideSplash } from './lib/splash'
 
 function App() {
@@ -23,6 +26,8 @@ function App() {
   }, [loading])
 
   return (
+    // pages inside Layout have their own Suspense, so the header and menu stay while a page loads
+    <Suspense fallback={null}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<RequireAuth />}>
@@ -40,6 +45,7 @@ function App() {
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   )
 }
 

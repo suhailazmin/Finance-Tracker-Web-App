@@ -65,6 +65,7 @@
     --brand-ink: #263b32;     /* headings and text */
     --brand-orange-ink: #8f5212; /* orange for small text on light surfaces (AA contrast) */
     --brand-leaf: #3d7a5c;    /* lighter forest step for gradients */
+    --backdrop-wash: var(--brand-sage); /* faint wash at the top of the page */
 
     --background: var(--brand-ivory);
     --foreground: var(--brand-ink);
@@ -100,38 +101,34 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Dark mode: the same palette stepped for a dark surface.
+   Forest-black background, deep-green cards, ivory text; primary becomes a lighter green so
+   buttons, links and income amounts stay readable (dark text on it). The orange accent keeps
+   its hue; its text shade gets lighter. Chart colours are separate (src/lib/chartTheme.ts). */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.765 0.177 163.223);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    color-scheme: dark; /* native date pickers, selects and scrollbars go dark too */
+    --brand-orange-ink: #f0b27a;
+    --backdrop-wash: #1c3a2c;
+
+    --background: #0f1714;
+    --foreground: #e8efe9;
+    --card: #17221d;
+    --card-foreground: #e8efe9;
+    --popover: #1b2822;
+    --popover-foreground: #e8efe9;
+    --primary: #6cc59a;
+    --primary-foreground: #0f1714;
+    --secondary: #1d3a2c;
+    --secondary-foreground: #a7e3c4;
+    --muted: #1f2b25;
+    --muted-foreground: #9fb1a6;
+    --accent: #1d3a2c;
+    --accent-foreground: #a7e3c4;
+    --destructive: #ef7a6c;
+    --border: #2a3a32;
+    --input: #34463d;
+    --ring: #6cc59a;
+    --sidebar: #17221d;
 }
 
 @layer base {
@@ -174,6 +171,6 @@
 /* Ivory page with a faint sage wash at the top */
 .app-backdrop {
   background:
-    radial-gradient(1200px 380px at 60% -180px, color-mix(in oklab, var(--brand-sage) 80%, transparent), transparent 70%),
+    radial-gradient(1200px 380px at 60% -180px, color-mix(in oklab, var(--backdrop-wash) 80%, transparent), transparent 70%),
     var(--background);
 }

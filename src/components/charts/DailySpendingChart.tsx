@@ -3,6 +3,7 @@ import { eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns'
 import { axisTick, chartColors, hoverCursor, yAxisProps } from '../../lib/chartTheme'
 import { formatRM } from '../../lib/format'
 import { useAmountsHidden } from '../../lib/privacy'
+import { useTheme } from '../../lib/theme'
 import type { Transaction } from '../../lib/types'
 import { ChartTooltip, TableView } from './ChartParts'
 
@@ -11,6 +12,7 @@ type Row = { date: string; day: string; label: string; amount: number }
 export default function DailySpendingChart({ transactions, month }: { transactions: Transaction[]; month: Date }) {
   // redraw when "hide amounts" changes, so the axis labels update too
   const hidden = useAmountsHidden()
+  const { dark } = useTheme()
   const byDate = new Map<string, number>()
   for (const t of transactions) {
     if (t.type === 'expense') byDate.set(t.date, (byDate.get(t.date) ?? 0) + t.amount)
@@ -25,7 +27,7 @@ export default function DailySpendingChart({ transactions, month }: { transactio
     <>
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart key={hidden ? 'hidden' : 'shown'} data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
+          <BarChart key={`${hidden}-${dark}`} data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke={chartColors.grid} />
             <XAxis
               dataKey="day"

@@ -20,7 +20,6 @@ import { useCategoryRules } from '../hooks/useCategoryRules'
 import { SEARCH_LIMIT, useTransactionSearch } from '../hooks/useTransactionSearch'
 import { useTransactions } from '../hooks/useTransactions'
 import { chartColors } from '../lib/chartTheme'
-import { exportTransactions, transactionsFilename } from '../lib/exportCsv'
 import { formatRM } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
 
@@ -111,6 +110,8 @@ export default function Transactions() {
     setExporting(true)
     const monthRange = { from: format(month, 'yyyy-MM-dd'), to: format(endOfMonth(month), 'yyyy-MM-dd') }
     try {
+      // the CSV code (and papaparse) only downloads when someone exports
+      const { exportTransactions, transactionsFilename } = await import('../lib/exportCsv')
       const result = await exportTransactions(
         searching ? { q, category, type, ...(scope === 'month' ? monthRange : {}) } : monthRange,
         categories,
@@ -304,7 +305,7 @@ function Stat({ label, value, icon: Icon, color }: { label: string; value: strin
       <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground sm:text-sm">
         <span
           className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary sm:size-8"
-          style={color ? { backgroundColor: `color-mix(in srgb, ${color} 16%, white)`, color } : undefined}
+          style={color ? { backgroundColor: `color-mix(in srgb, ${color} 16%, var(--card))`, color } : undefined}
         >
           <Icon className="size-3.5 sm:size-4" aria-hidden="true" />
         </span>
