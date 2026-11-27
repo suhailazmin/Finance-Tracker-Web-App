@@ -12,8 +12,10 @@ import { Input } from '@/components/ui/input'
 import MonthPicker from '../components/MonthPicker'
 import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
+import { useRecurring } from '../hooks/useRecurring'
 import { useTransactions } from '../hooks/useTransactions'
 import { monthProgress } from '../lib/budget'
+import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
 import type { Budget, Category } from '../lib/types'
 
@@ -25,6 +27,11 @@ export default function Budgets() {
   const [copyMessage, setCopyMessage] = useState('')
   const { categories } = useCategories()
   const { transactions } = useTransactions(month)
+  const { items: recurring } = useRecurring()
+  const [today] = useState(() => new Date())
+  // month-end forecast per category, only for the month we're in
+  const projectedFor = (categoryId: string) =>
+    isCurrentMonth(month, today) ? forecastMonth(transactions, recurring, today, categoryId).projected : undefined
   const { budgets, loading, error, set, remove, copyFromPreviousMonth } = useBudgets(month)
 
   const spentByCategory = new Map<string, number>()
@@ -99,6 +106,7 @@ export default function Budgets() {
             budget={budgetByCategory.get(c.id)}
             spent={spentByCategory.get(c.id) ?? 0}
             pace={pace}
+            projected={projectedFor(c.id)}
             onSave={(limit) => set(c.id, limit)}
             onRemove={(b) => remove(b.id, `${c.name} · ${formatRM(b.limit_amount)} a month`)}
           />
@@ -113,11 +121,12 @@ type RowProps = {
   budget?: Budget
   spent: number
   pace: number
+  projected?: number // month-end forecast, current month only
   onSave: (limit: number) => Promise<string | undefined>
   onRemove: (budget: Budget) => Promise<string | undefined>
 }
 
-function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps) {
+function BudgetRow({ category, budget, spent, pace, projected, onSave, onRemove }: RowProps) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
@@ -164,6 +173,13 @@ function BudgetRow({ category, budget, spent, pace, onSave, onRemove }: RowProps
       {budget && !editing && (
         <div className="mt-3">
           <BudgetMeter spent={spent} limit={budget.limit_amount} pace={pace} />
+          {projected !== undefined && projected > 0 && spent <= budget.limit_amount && (
+            <p className={`mt-1.5 text-xs ${projected > budget.limit_amount ? 'font-semibold text-brand-orange-ink' : 'text-muted-foreground'}`}>
+              {projected > budget.limit_amount
+                ? `Heading over: on pace for ${formatRM(Math.round(projected))} by month end`
+                : `On pace for ${formatRM(Math.round(projected))} by month end`}
+            </p>
+          )}
         </div>
       )}
 

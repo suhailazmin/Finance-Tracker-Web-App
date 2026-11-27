@@ -13,10 +13,12 @@ import {
   ReceiptText,
   Target,
 } from 'lucide-react'
+import BudgetAlerts from '../components/BudgetAlerts'
 import BudgetSummary from '../components/BudgetSummary'
 import DashboardHero from '../components/DashboardHero'
 import DueRecurring from '../components/DueRecurring'
 import EmptyState from '../components/EmptyState'
+import ForecastCard from '../components/ForecastCard'
 import { ErrorAlert } from '../components/Feedback'
 import GoalsSummary from '../components/GoalsSummary'
 import MonthPicker from '../components/MonthPicker'
@@ -32,10 +34,12 @@ import { Card } from '@/components/ui/card'
 import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
 import { useMonthlyTotals } from '../hooks/useMonthlyTotals'
+import { useRecurring } from '../hooks/useRecurring'
 import { useSavingsGoals } from '../hooks/useSavingsGoals'
 import { useTransactions } from '../hooks/useTransactions'
 import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
+import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
 
 export default function Dashboard() {
@@ -45,6 +49,10 @@ export default function Dashboard() {
   const { totals } = useMonthlyTotals(month, 6)
   const { budgets } = useBudgets(month)
   const { goals } = useSavingsGoals()
+  const { items: recurring } = useRecurring()
+  // read the clock once; the forecast only applies to the month we're in
+  const [today] = useState(() => new Date())
+  const showForecast = isCurrentMonth(month, today) && !loading
 
   const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
@@ -103,6 +111,29 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      {showForecast && (
+        <div className="grid gap-6 lg:grid-cols-12">
+          <ForecastCard
+            forecast={forecastMonth(transactions, recurring, today)}
+            month={month}
+            income={income}
+            previousExpenses={previous?.expenses}
+            previousName={previousName}
+            className={budgets.length ? 'lg:col-span-7' : 'lg:col-span-12'}
+          />
+          {budgets.length > 0 && (
+            <BudgetAlerts
+              budgets={budgets}
+              categories={categories}
+              transactions={transactions}
+              recurring={recurring}
+              today={today}
+              className="lg:col-span-5"
+            />
+          )}
+        </div>
+      )}
 
       <DueRecurring categories={categories} />
 
