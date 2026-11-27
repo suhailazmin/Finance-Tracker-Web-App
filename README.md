@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  A personal expense tracker for Malaysia: log what you earn and spend in RM, set monthly budgets,
-  save towards goals, and let keyword rules categorize transactions for you.
+  A personal expense tracker for Malaysia: log what you earn and spend in RM, import bank statements,
+  set budgets, save towards goals, and see where the month is heading before it ends.
 </p>
 
 <p align="center">
@@ -14,48 +14,66 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: balance card, income and expense tiles, cashflow chart and spending by category" width="900" />
+  <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: balance card, stat tiles, month-end forecast, budget alerts and a recurring bill to confirm" width="900" />
 </p>
 
 ## Screenshots
 
-Monetra works on desktop and phone. On a phone it can be added to the Home Screen and opens full screen like an app.
+Monetra works on desktop and phone. On a phone it installs to the Home Screen, opens full screen and keeps working offline.
 
-| Dashboard | Transactions | Budgets | Sign-out confirmation |
+| Dashboard | Month-end forecast | Search | Recurring |
 | :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/phone-dashboard.png" alt="Dashboard on a phone" width="200" /> | <img src="docs/screenshots/phone-transactions.png" alt="Transaction history with category icons" width="200" /> | <img src="docs/screenshots/phone-budgets.png" alt="Monthly budgets with progress bars" width="200" /> | <img src="docs/screenshots/phone-confirm.png" alt="Sign out confirmation dialog" width="200" /> |
+| <img src="docs/screenshots/phone-dashboard.png" alt="Dashboard on a phone" width="200" /> | <img src="docs/screenshots/phone-forecast.png" alt="Month-end forecast and budget alerts" width="200" /> | <img src="docs/screenshots/phone-search.png" alt="Searching grab across all months, with matches highlighted" width="200" /> | <img src="docs/screenshots/phone-recurring.png" alt="Recurring salary, bills and rent with auto and ask-first modes" width="200" /> |
 
-| Transactions (desktop) | Savings goals (desktop) |
-| :---: | :---: |
-| <img src="docs/screenshots/desktop-transactions.png" alt="Add transaction form beside the history list" width="440" /> | <img src="docs/screenshots/desktop-goals.png" alt="Savings goals with monthly saving plans" width="440" /> |
+| Statement import | Dark mode | Sign-in |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/phone-import.png" alt="Reviewing a bank CSV before importing, with categories filled in from rules" width="200" /> | <img src="docs/screenshots/phone-dark.png" alt="Transactions page in dark mode" width="200" /> | <img src="docs/screenshots/phone-login.png" alt="Sign-in page with Google and email options" width="200" /> |
 
 <details>
-<summary>Sign-in page</summary>
+<summary>More: dark mode on desktop, and the Categories page</summary>
 <br />
-<img src="docs/screenshots/phone-login.png" alt="Sign-in page with Google and email options" width="260" />
+<img src="docs/screenshots/desktop-dashboard-dark.png" alt="Dashboard on desktop in dark mode" width="880" />
+<br /><br />
+<img src="docs/screenshots/desktop-categories.png" alt="Categories page with a colour picker and a live icon preview" width="880" />
 </details>
 
 <sub>Screenshots use made-up sample data.</sub>
 
 ## Features
 
-- **Dashboard**: the month's balance and savings rate, income and expenses with change vs last month, a 6-month cashflow chart, spending by category, daily spending, recent transactions, budgets and goals at a glance
-- **Transactions**: add, edit and delete income and expenses, grouped by day, each with its category's icon
-- **Auto-categorization**: keyword rules (e.g. `PETRONAS` → Petrol, `GRABFOOD` → Food) pick the category as you type. Rules match whole words, can take priority over others, and can be applied to past uncategorized transactions in one go. New accounts start with rules for common Malaysian merchants
-- **Budgets**: a monthly limit per category with a progress bar, a "today" marker showing how far through the month you are, on-track / close / over status, and one-click copy from last month
-- **Savings goals**: target, deadline and progress, with how much to save each month to get there. Suggests an emergency fund of 3–6 months of your average spending
-- **Sign-in**: email and password, a magic link by email, or Google, plus password reset
-- **Installable**: add it to the Home Screen on iPhone or Android to run full screen
-- **Safe by default**: confirmation pop-ups before signing out or deleting anything, and every user can only ever read and write their own data (Postgres row-level security)
-- **Accessible charts**: the colours were checked for colour-blind readers, every chart has a "Show as table" view, and status is always shown with an icon and words, not colour alone
+### Tracking
+- **Dashboard**: the month's balance and savings rate, income and expenses with change vs last month, a 6-month cashflow chart, spending by category (tap a category to see its transactions), daily spending, recent transactions, budgets and goals
+- **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. **Search** descriptions across every month, and filter by category, expense or income
+- **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns, reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`), and lets you review everything before saving. Importing the same file twice never creates duplicates
+- **Recurring transactions**: salary, rent and bills are added every month automatically, or shown on the dashboard to confirm when the amount changes (like TNB). Missed months are caught up, and nothing is ever added twice
+- **Export to CSV**: download all your data, or exactly what's on screen, for a backup or a spreadsheet. Monetra can import its own export back
+
+### Planning
+- **Month-end forecast**: "at this pace you'll spend about RM X this month", worked out from your everyday spending rate plus the recurring bills still to come
+- **Budgets**: a monthly limit per category with a "today" marker, an on-pace forecast, and **alerts before you go over**
+- **Savings goals**: target, deadline and progress, with how much to save each month. Suggests an emergency fund of 3–6 months of your average spending
+- **Categories and auto-categorization**: create, rename and recolour categories, and an icon is picked from the name. Keyword rules (e.g. `PETRONAS` → Petrol) categorize new and imported transactions, and new accounts start with rules for common Malaysian merchants
+
+### On your phone
+- **Installable**: add it to the Home Screen and it opens full screen with a splash screen and a floating tab bar
+- **Offline**: opens instantly with no signal and shows your last-loaded data. Transactions you add offline are saved on the phone and sync when you're back online
+- **Pull to refresh**, and pages that load quickly, because each page downloads only when it's opened
+
+### Comfort and privacy
+- **Dark mode**: Light, Dark or System (follows your phone)
+- **Hide amounts**: one tap turns every RM figure into `RM ••••` for using the app in public
+- **Undo** instead of "Are you sure?" for deletes. Signing out and deleting a category still ask first
+- **Private by design**: Postgres row-level security means every user can only read and write their own data. The copy kept for offline use is deleted when you sign out
+- **Accessible charts**: chart colours are checked for colour-blind readers in both light and dark mode, every chart has a "Show as table" view, and status is always shown with an icon and words
 
 ## Tech stack
 
 | Area | Tools |
 | --- | --- |
 | Frontend | [React 19](https://react.dev), TypeScript, [Vite](https://vite.dev), React Router |
-| UI | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com) (Radix), [Lucide](https://lucide.dev) icons, Nunito font |
-| Charts | [Recharts](https://recharts.org), date-fns |
+| UI | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com) (Radix), [Lucide](https://lucide.dev) icons, [Sonner](https://sonner.emilkowal.ski) toasts, Nunito font |
+| Charts and data | [Recharts](https://recharts.org), date-fns, [Papa Parse](https://www.papaparse.com) for CSV |
+| Offline | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) (Workbox service worker) |
 | Backend | [Supabase](https://supabase.com): Postgres, Auth and row-level security |
 | Hosting | [Vercel](https://vercel.com), plus a GitHub Actions job that keeps the free Supabase project awake |
 
@@ -70,9 +88,11 @@ Monetra works on desktop and phone. On a phone it can be added to the Home Scree
 
 In the Supabase dashboard, open **SQL Editor → New query**, paste in [`supabase/schema.sql`](supabase/schema.sql) and click **Run**. This creates:
 
-- the tables (`categories`, `transactions`, `category_rules`, `budgets`, `savings_goals`)
+- the tables (`categories`, `transactions`, `category_rules`, `budgets`, `savings_goals`, `recurring_transactions`)
 - row-level security, so each user only sees their own rows
 - a trigger that gives every new user default categories and merchant rules
+
+> **Already set up from an older version?** Run [`supabase/migrations/20261127_recurring_transactions.sql`](supabase/migrations/20261127_recurring_transactions.sql) once to add recurring transactions. Until then, the Recurring page shows these steps and the rest of the app works as normal.
 
 ### 3. Configure and run
 
@@ -104,9 +124,9 @@ Open http://localhost:5173 and create an account.
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Start the dev server with hot reload |
-| `npm run build` | Type-check and build for production into `dist/` |
-| `npm run preview` | Serve the production build locally |
+| `npm run dev` | Start the dev server with hot reload (the offline service worker is off here) |
+| `npm run build` | Type-check and build for production into `dist/`, including the service worker |
+| `npm run preview` | Serve the production build locally. Use this to try offline mode |
 | `npm run lint` | Lint with Oxlint |
 
 ## Deploying
@@ -115,7 +135,7 @@ Open http://localhost:5173 and create an account.
 2. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as environment variables.
 3. Add the deployed URL to Supabase's **Redirect URLs**.
 
-[`vercel.json`](vercel.json) sends every path to `index.html`, so routes like `/budgets` still work when you refresh the page.
+[`vercel.json`](vercel.json) sends every path to `index.html`, so routes like `/budgets` still work when you refresh the page. When a new version is deployed, open copies of the app show a **Reload** prompt instead of refreshing mid-task.
 
 ### Keeping the free Supabase project awake
 
@@ -125,14 +145,18 @@ Supabase pauses free projects after about a week without activity. The workflow 
 
 ```text
 src/
-├── pages/           Dashboard, Transactions, Budgets, Goals, Rules, Account, Login
-├── components/      Layout (sidebar + phone tab bar), cards, forms, ConfirmDialog
+├── pages/           Dashboard, Transactions, Import, Recurring, Budgets, Goals, Categories, Rules, Account, Login
+│                    (each loads on demand)
+├── components/      Layout (sidebar + phone tab bar), cards, forms, forecast, pull-to-refresh, dialogs
 │   ├── charts/      Cashflow, daily spending and category breakdown
 │   └── ui/          shadcn/ui components
-├── hooks/           Data hooks (useTransactions, useBudgets, useSavingsGoals, …)
-├── lib/             Supabase client, formatting, budget/goal maths, categorization rules
+├── hooks/           Data hooks (useTransactions, useTransactionSearch, useRecurring, useBudgets, …)
+├── lib/             Supabase client and money logic: forecast, recurring dates, CSV import/export,
+│                    categorization rules, offline outbox, theme, hide-amounts, undo
 ├── auth/            Session context and the route guard
 └── assets/          Monetra logos
-supabase/schema.sql  Database tables, security policies and new-user defaults
+supabase/
+├── schema.sql       Database tables, security policies and new-user defaults
+└── migrations/      Changes for databases created from an older schema
 public/              Favicon, app icons and the web app manifest
 ```
