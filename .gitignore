@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Original full-size logo artwork (kept locally, not in the repo; the app uses the
+# web-sized copies in src/assets and public)
+design/
