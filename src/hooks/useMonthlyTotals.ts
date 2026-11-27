@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { addMonths, endOfMonth, format, parseISO, startOfMonth } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
+import { addRM } from '../lib/money'
+import { friendlyError } from '../lib/errors'
 
 export type MonthTotal = {
   month: string // yyyy-MM
@@ -41,10 +43,10 @@ export function useMonthlyTotals(month: Date, count = 6) {
         for (const row of data ?? []) {
           const bucket = byMonth.get(String(row.date).slice(0, 7))
           if (!bucket) continue
-          if (row.type === 'income') bucket.income += Number(row.amount)
-          else bucket.expenses += Number(row.amount)
+          if (row.type === 'income') bucket.income = addRM(bucket.income, Number(row.amount))
+          else bucket.expenses = addRM(bucket.expenses, Number(row.amount))
         }
-        setResult({ key, totals, error: error?.message ?? '' })
+        setResult({ key, totals, error: friendlyError(error) })
       })
     return () => {
       ignore = true

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useCategories } from '../hooks/useCategories'
 import type { SaveResult } from '../lib/exportCsv'
 import { format } from 'date-fns'
+import { friendlyError } from '../lib/errors'
 
 type Job = 'transactions' | 'budgets' | 'goals' | 'recurring' | 'categories'
 
@@ -20,7 +21,7 @@ export default function ExportData() {
       const result = await fn()
       if (result.saved) toast.success(`${label} exported`, { description: `${result.filename} · ${result.rows} row${result.rows === 1 ? '' : 's'}` })
     } catch (e) {
-      const message = (e as Error).message
+      const message = friendlyError((e as Error).message)
       toast.error(`Couldn’t export ${label.toLowerCase()}`, {
         description: /recurring_transactions/.test(message) ? 'Recurring isn’t set up in your database yet.' : message,
       })

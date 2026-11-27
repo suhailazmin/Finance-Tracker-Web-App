@@ -16,6 +16,8 @@ import { findRule, normalizeKeyword } from '../lib/categorize'
 import { supabase } from '../lib/supabase'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Category, CategoryRule } from '../lib/types'
+import { friendlyError } from '../lib/errors'
+import { toast } from 'sonner'
 
 type Uncategorized = { id: string; description: string; type: string }
 
@@ -27,7 +29,7 @@ export default function Rules() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Auto-categorization"
+        title="Auto-categorize"
         description={
           <>
             When a description contains a keyword, its category is picked for you. Keywords match whole words (so DIGI
@@ -117,7 +119,8 @@ function AddRuleForm({
     if (error) {
       setMessage({ ok: false, text: error })
     } else {
-      setMessage({ ok: true, text: `Added “${clean}”.` })
+      setMessage(null)
+      toast.success('Rule added', { description: `${clean} → ${categories.find((c) => c.id === categoryId)?.name ?? 'category'}` })
       setKeyword('')
       setFirst(false)
     }
@@ -210,10 +213,11 @@ function ApplyToPast({ rules, categoryById }: { rules: CategoryRule[]; categoryB
     let error = ''
     for (const [categoryId, ids] of idsByCategory) {
       const result = await supabase.from('transactions').update({ category_id: categoryId }).in('id', ids)
-      if (result.error) error = result.error.message
+      if (result.error) error = friendlyError(result.error)
     }
     setBusy(false)
-    setMessage(error || `Categorized ${matches.length} transaction${matches.length === 1 ? '' : 's'}.`)
+    setMessage(error)
+    if (!error) toast.success(`Categorized ${matches.length} transaction${matches.length === 1 ? '' : 's'}`)
     setVersion((v) => v + 1)
   }
 
@@ -235,7 +239,7 @@ function ApplyToPast({ rules, categoryById }: { rules: CategoryRule[]; categoryB
           onConfirm={apply}
         />
       )}
-      {message && <FormMessage ok>{message}</FormMessage>}
+      {message && <FormMessage>{message}</FormMessage>}
     </div>
   )
 }

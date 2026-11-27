@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { supabase } from './supabase'
 import { refreshAll } from './refresh'
+import { friendlyError } from './errors'
 
 type Table = 'transactions' | 'budgets' | 'savings_goals' | 'category_rules' | 'recurring_transactions'
 
@@ -12,8 +13,9 @@ const UNDO_MS = 6000
 export async function deleteWithUndo(table: Table, id: string, message: string, detail?: string): Promise<string | undefined> {
   const { data, error } = await supabase.from(table).delete().eq('id', id).select()
   if (error) {
-    toast.error(`Couldn’t delete: ${error.message}`)
-    return error.message
+    const text = friendlyError(error)
+    toast.error('Couldn’t delete', { description: text })
+    return text
   }
   const rows = data ?? []
   toast(message, {
@@ -28,7 +30,7 @@ async function restore(table: Table, rows: object[]) {
   if (rows.length === 0) return
   const { error } = await supabase.from(table).insert(rows)
   if (error) {
-    toast.error(`Couldn’t undo: ${error.message}`)
+    toast.error('Couldn’t undo', { description: friendlyError(error) })
     return
   }
   toast.success('Restored')

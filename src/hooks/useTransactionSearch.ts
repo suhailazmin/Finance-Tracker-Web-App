@@ -3,6 +3,9 @@ import { supabase } from '../lib/supabase'
 import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Transaction, TransactionInput, TransactionType } from '../lib/types'
+import { friendlyError } from '../lib/errors'
+import { toast } from 'sonner'
+import { formatRM } from '../lib/format'
 
 export type SearchFilters = {
   q: string // matched anywhere in the description, any case
@@ -58,7 +61,7 @@ export function useTransactionSearch(filters: SearchFilters, enabled: boolean) {
         if (ignore) return
         setResult({
           key,
-          error: error?.message ?? '',
+          error: friendlyError(error),
           count: count ?? 0,
           // numeric columns come back as strings from PostgREST
           transactions: ((data ?? []) as Transaction[]).map((t) => ({ ...t, amount: Number(t.amount) })),
@@ -74,8 +77,11 @@ export function useTransactionSearch(filters: SearchFilters, enabled: boolean) {
 
   async function update(id: string, input: TransactionInput) {
     const { error } = await supabase.from('transactions').update(input).eq('id', id)
-    if (!error) refresh()
-    return error?.message
+    if (!error) {
+      refresh()
+      toast.success('Changes saved', { description: `${formatRM(input.amount)} · ${input.description}` })
+    }
+    return friendlyError(error) || undefined
   }
 
   // deletes at once; the toast offers Undo

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { SavingsGoal, SavingsGoalInput } from '../lib/types'
+import { friendlyError } from '../lib/errors'
 
 export function useSavingsGoals() {
   // reload when the user pulls to refresh
@@ -22,7 +23,7 @@ export function useSavingsGoals() {
       .then(({ data, error }) => {
         done()
         if (ignore) return
-        setError(error?.message ?? '')
+        setError(friendlyError(error))
         // numeric columns come back as strings from PostgREST
         setGoals(
           ((data ?? []) as SavingsGoal[]).map((g) => ({
@@ -44,13 +45,13 @@ export function useSavingsGoals() {
   async function add(input: SavingsGoalInput) {
     const { error } = await supabase.from('savings_goals').insert(input)
     if (!error) refresh()
-    return error?.message
+    return friendlyError(error) || undefined
   }
 
   async function update(id: string, input: Partial<SavingsGoalInput>) {
     const { error } = await supabase.from('savings_goals').update(input).eq('id', id)
     if (!error) refresh()
-    return error?.message
+    return friendlyError(error) || undefined
   }
 
   // deletes at once; the toast offers Undo

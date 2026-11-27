@@ -8,7 +8,7 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
 // "DIGITAL OCEAN", and "MRT" doesn't match "SMRT". A trailing S is allowed,
 // so "MCDONALD" still matches "MCDONALDS".
 function matches(description: string, keyword: string) {
-  const pattern = new RegExp(`(^|[^A-Z0-9])${escapeRegExp(normalize(keyword))}S?($|[^A-Z0-9])`)
+  const pattern = new RegExp(`(^|[^A-Z0-9])${escapeRegExp(keyword)}S?($|[^A-Z0-9])`)
   return pattern.test(description)
 }
 
@@ -17,9 +17,11 @@ function matches(description: string, keyword: string) {
 export function findRule(description: string, rules: CategoryRule[]): CategoryRule | undefined {
   const text = normalize(description)
   if (!text) return undefined
-  return [...rules]
-    .sort((a, b) => b.priority - a.priority || b.keyword.length - a.keyword.length)
-    .find((r) => matches(text, r.keyword))
+  return rules
+    .map((rule) => ({ rule, keyword: normalize(rule.keyword) }))
+    .filter((r) => r.keyword !== '') // a blank keyword would match every description
+    .sort((a, b) => b.rule.priority - a.rule.priority || b.keyword.length - a.keyword.length)
+    .find((r) => matches(text, r.keyword))?.rule
 }
 
 export const normalizeKeyword = normalize

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
+import { friendlyError } from '../lib/errors'
 
 type Mode = 'signin' | 'signup' | 'magic' | 'forgot'
 
@@ -65,7 +66,7 @@ export default function Login() {
       if (!result.error) setNotice(`If ${address} has an account, a reset link is on its way.`)
     }
 
-    if (result.error) setError(friendlyError(result.error.message))
+    if (result.error) setError(signInError(result.error.message))
     setBusy(false)
   }
 
@@ -75,7 +76,7 @@ export default function Login() {
       provider: 'google',
       options: { redirectTo: window.location.origin },
     })
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error, { keepUnknown: true }))
   }
 
   const needsPassword = mode === 'signin' || mode === 'signup'
@@ -181,11 +182,11 @@ export default function Login() {
 }
 
 // Supabase's wording for the most common case doesn't mention magic-link accounts
-function friendlyError(message: string) {
+function signInError(message: string) {
   if (message === 'Invalid login credentials') {
     return 'Wrong email or password. If you have only used email links before, use "Forgot password?" to set a password.'
   }
-  return message
+  return friendlyError(message, { keepUnknown: true })
 }
 
 function LinkButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {

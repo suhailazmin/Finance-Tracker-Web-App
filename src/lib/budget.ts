@@ -1,10 +1,14 @@
 import { endOfMonth, getDate, getDaysInMonth, isAfter, isSameMonth } from 'date-fns'
+import { addRM, toSen } from './money'
+import type { Transaction } from './types'
 
 export type BudgetStatus = 'good' | 'warning' | 'over'
 
-// Under 75% used is on track, 75–100% is close to the limit, above 100% is over
+// Under 75% used is on track, 75–100% is close to the limit, above 100% is over.
+// Compared in sen, so spending exactly the limit is never "over".
 export function budgetStatus(spent: number, limit: number): BudgetStatus {
-  const used = limit > 0 ? spent / limit : 0
+  const limitSen = toSen(limit)
+  const used = limitSen > 0 ? toSen(spent) / limitSen : 0
   if (used > 1) return 'over'
   if (used >= 0.75) return 'warning'
   return 'good'
@@ -15,6 +19,18 @@ export const statusStyle: Record<BudgetStatus, { color: string; icon: string; la
   good: { color: '#0ca30c', icon: '✓', label: 'On track' },
   warning: { color: '#fab219', icon: '!', label: 'Close to limit' },
   over: { color: '#d03b3b', icon: '✕', label: 'Over budget' },
+}
+
+// Total spent per category id. Only expenses count: income and uncategorized
+// transactions never use up a budget.
+export function spentByCategory(transactions: Transaction[]): Map<string, number> {
+  const spent = new Map<string, number>()
+  for (const t of transactions) {
+    if (t.type === 'expense' && t.category_id) {
+      spent.set(t.category_id, addRM(spent.get(t.category_id) ?? 0, t.amount))
+    }
+  }
+  return spent
 }
 
 // How far through the month we are (0–1), for the "today" marker on budget bars.

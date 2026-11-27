@@ -87,7 +87,7 @@ export default function TransactionForm({ categories, rules = [], initial, onSub
         value={type}
         onChange={changeType}
         options={[
-          { value: 'expense', label: 'Expense', activeClassName: 'text-destructive' },
+          { value: 'expense', label: 'Expense', activeClassName: 'text-brand-orange-ink' },
           { value: 'income', label: 'Income', activeClassName: 'text-primary' },
         ]}
       />

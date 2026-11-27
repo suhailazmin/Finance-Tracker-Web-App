@@ -4,6 +4,7 @@ import { FormMessage } from './Feedback'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { SavingsGoal, SavingsGoalInput } from '../lib/types'
+import { toast } from 'sonner'
 
 type Props = {
   initial?: SavingsGoal
@@ -49,6 +50,7 @@ export default function GoalForm({ initial, defaults, onSubmit, onCancel }: Prop
       setError(message)
     } else {
       setError('')
+      toast.success(initial ? 'Goal updated' : 'Goal created', { description: name.trim() })
       if (!initial) {
         setName('')
         setTarget('')

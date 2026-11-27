@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowDown, ArrowUp, ChevronRight, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 
@@ -21,9 +22,11 @@ type Props = {
   keyColor?: string
   delta?: Delta
   detail?: string
+  // makes the whole tile a link, e.g. to the page with the details
+  to?: string
 }
 
-export default function StatTile({ label, value, icon: Icon, keyColor, delta, detail }: Props) {
+export default function StatTile({ label, value, icon: Icon, keyColor, delta, detail, to }: Props) {
   const Arrow = delta?.direction === 'up' ? ArrowUp : delta?.direction === 'down' ? ArrowDown : Minus
   const tone =
     !delta || delta.direction === 'flat' || delta.good === undefined
@@ -32,8 +35,8 @@ export default function StatTile({ label, value, icon: Icon, keyColor, delta, de
         ? 'bg-secondary text-primary'
         : 'bg-destructive/10 text-destructive'
 
-  return (
-    <Card size="sm" className="gap-3 px-4 py-4">
+  const tile = (
+    <Card size="sm" className={cn('h-full gap-3 px-4 py-4', to && 'transition-colors group-hover:bg-muted/40')}>
       <div className="flex min-w-0 items-center gap-2.5">
         <span
           className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"
@@ -42,6 +45,7 @@ export default function StatTile({ label, value, icon: Icon, keyColor, delta, de
           <Icon className="size-[18px]" aria-hidden="true" />
         </span>
         <p className="text-sm leading-tight font-semibold text-muted-foreground">{label}</p>
+        {to && <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
       </div>
       <div>
         <p className="text-lg font-extrabold tracking-tight whitespace-nowrap sm:text-2xl">{value}</p>
@@ -67,5 +71,12 @@ export default function StatTile({ label, value, icon: Icon, keyColor, delta, de
         {detail && <p className="mt-1.5 text-xs text-muted-foreground">{detail}</p>}
       </div>
     </Card>
+  )
+  return to ? (
+    <Link to={to} className="group block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+      {tile}
+    </Link>
+  ) : (
+    tile
   )
 }

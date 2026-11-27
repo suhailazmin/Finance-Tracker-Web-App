@@ -22,6 +22,8 @@ import { formatRM } from '../lib/format'
 import { monthKey, nextOccurrence, occurrenceIn, ordinal } from '../lib/recurring'
 import type { Category, CategoryRule, RecurringInput, RecurringTransaction, TransactionType } from '../lib/types'
 import migrationSql from '../../supabase/migrations/20261127_recurring_transactions.sql?raw'
+import { sumRM } from '../lib/money'
+import { toast } from 'sonner'
 
 // Positive RM amount with at most 2 decimal places
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
@@ -32,7 +34,7 @@ export default function Recurring() {
   const { items, loaded, error, missingTable, add, update, remove, setActive } = useRecurring()
 
   const monthly = (type: TransactionType) =>
-    items.filter((i) => i.active && i.type === type).reduce((sum, i) => sum + i.amount, 0)
+    sumRM(items.filter((i) => i.active && i.type === type).map((i) => i.amount))
   const moneyIn = monthly('income')
   const moneyOut = monthly('expense')
 
@@ -86,7 +88,11 @@ export default function Recurring() {
                       rules={rules}
                       onUpdate={(input) => update(item.id, input)}
                       onRemove={() => remove(item.id, item.description)}
-                      onToggle={() => setActive(item, !item.active)}
+                      onToggle={async () => {
+                        const error = await setActive(item, !item.active)
+                        if (error) toast.error(`Couldn’t ${item.active ? 'pause' : 'resume'} ${item.description}`, { description: error })
+                        else toast.success(`${item.description} ${item.active ? 'paused' : 'resumed'}`, { description: item.active ? 'It won’t be added until you resume it.' : 'It will be added again from its next due date.' })
+                      }}
                     />
                   ))}
                 </ul>
@@ -161,11 +167,11 @@ function RecurringForm({ categories, rules, initial, onSubmit, onCancel }: FormP
     if (error) return setMessage({ ok: false, text: error })
     if (!initial) {
       const addedNow = autoAdd && startThisMonth && thisMonthPassed
-      setMessage({
-        ok: true,
-        text: addedNow
-          ? `Added “${description.trim()}”, including this month’s entry on ${format(thisMonthDate, 'd MMM')}.`
-          : `Added “${description.trim()}”.`,
+      setMessage(null)
+      toast.success('Recurring item added', {
+        description: addedNow
+          ? `${description.trim()}, including this month’s entry on ${format(thisMonthDate, 'd MMM')}`
+          : description.trim(),
       })
       setDescription('')
       setAmount('')
@@ -183,7 +189,7 @@ function RecurringForm({ categories, rules, initial, onSubmit, onCancel }: FormP
           if (!categories.some((c) => c.id === chosenCategory && c.type === t)) setChosenCategory(null)
         }}
         options={[
-          { value: 'expense', label: 'Bill / expense', activeClassName: 'text-destructive' },
+          { value: 'expense', label: 'Bill / expense', activeClassName: 'text-brand-orange-ink' },
           { value: 'income', label: 'Income', activeClassName: 'text-primary' },
         ]}
       />
@@ -297,7 +303,10 @@ function RecurringRow({ item, categories, rules, onUpdate, onRemove, onToggle }:
           initial={item}
           onSubmit={async (input) => {
             const error = await onUpdate(input)
-            if (!error) setEditing(false)
+            if (!error) {
+              setEditing(false)
+              toast.success('Changes saved', { description: input.description })
+            }
             return error
           }}
           onCancel={() => setEditing(false)}

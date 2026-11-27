@@ -32,6 +32,7 @@ import {
 } from '../lib/importCsv'
 import { supabase } from '../lib/supabase'
 import type { Category, CategoryRule, TransactionType } from '../lib/types'
+import { friendlyError } from '../lib/errors'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 
@@ -327,7 +328,7 @@ function Review({ sheet, mapping, source, categories, rules, onDone }: ReviewPro
         const chunk = withHashes.slice(i, i + 80).map((r) => r.hash)
         const { data, error } = await supabase.from('transactions').select('import_hash').in('import_hash', chunk)
         if (error) {
-          if (!ignore) setCheckError(`Couldn’t check for duplicates: ${error.message}`)
+          if (!ignore) setCheckError(`Couldn’t check for duplicates. ${friendlyError(error)}`)
           break
         }
         for (const d of data ?? []) found.add(d.import_hash as string)
@@ -399,8 +400,8 @@ function Review({ sheet, mapping, source, categories, rules, onDone }: ReviewPro
         setBusy(false)
         return setImportError(
           imported > 0
-            ? `Imported ${imported}, then stopped: ${error.message}. Importing the same file again will skip the ones already saved.`
-            : error.message
+            ? `Imported ${imported}, then stopped. ${friendlyError(error)} Importing the same file again will skip the ones already saved.`
+            : friendlyError(error)
         )
       }
       imported += data?.length ?? 0

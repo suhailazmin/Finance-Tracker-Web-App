@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { addMonths, format, startOfMonth } from 'date-fns'
 import {
@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChartBar,
   ChartColumn,
+  ChevronDown,
   Percent,
   PiggyBank,
   Plus,
@@ -29,6 +30,7 @@ import StatTile, { type Delta } from '../components/StatTile'
 import CategoryBreakdown from '../components/charts/CategoryBreakdown'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { useBudgets } from '../hooks/useBudgets'
 import { useCategories } from '../hooks/useCategories'
 import { useMonthlyTotals } from '../hooks/useMonthlyTotals'
@@ -39,6 +41,7 @@ import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
 import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
+import { sumRM } from '../lib/money'
 
 // The chart library is the heaviest part of the dashboard, so the charts load just after
 // the page appears (balance and tiles show first)
@@ -58,16 +61,16 @@ export default function Dashboard() {
   const [today] = useState(() => new Date())
   const showForecast = isCurrentMonth(month, today) && !loading
 
-  const income = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0)
-  const expenses = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)
-  const balance = income - expenses
+  const income = sumRM(transactions.filter((t) => t.type === 'income').map((t) => t.amount))
+  const expenses = sumRM(transactions.filter((t) => t.type === 'expense').map((t) => t.amount))
+  const balance = sumRM([income, -expenses])
   const previous = totals.at(-2)
   const previousName = format(addMonths(month, -1), 'MMMM')
   const monthName = format(month, 'MMMM yyyy')
 
   const rate = income > 0 ? Math.round((balance / income) * 100) : null
   const previousRate = previous && previous.income > 0 ? Math.round(((previous.income - previous.expenses) / previous.income) * 100) : null
-  const goalsSaved = goals.reduce((sum, g) => sum + g.current_amount, 0)
+  const goalsSaved = sumRM(goals.map((g) => g.current_amount))
   const empty = !loading && transactions.length === 0
 
   return (
@@ -101,7 +104,7 @@ export default function Dashboard() {
             delta={previous ? change(expenses, previous.expenses, previousName, false) : undefined}
           />
           <StatTile
-            label="Savings rate"
+            label="Kept from income"
             value={rate === null ? '—' : `${rate}%`}
             icon={Percent}
             delta={rate !== null && previousRate !== null ? rateChange(rate, previousRate, previousName) : undefined}
@@ -112,9 +115,13 @@ export default function Dashboard() {
             value={formatRM(goalsSaved)}
             icon={PiggyBank}
             detail={goals.length ? `Across ${goals.length} goal${goals.length === 1 ? '' : 's'}` : 'No goals yet'}
+            to="/goals"
           />
         </div>
       </div>
+
+      {/* things that need a tap first */}
+      <DueRecurring categories={categories} />
 
       {showForecast && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -126,6 +133,7 @@ export default function Dashboard() {
             previousName={previousName}
             className={budgets.length ? 'lg:col-span-7' : 'lg:col-span-12'}
           />
+          {/* budgets that are over or heading over; the full list is on the Budgets page */}
           {budgets.length > 0 && (
             <BudgetAlerts
               budgets={budgets}
@@ -138,8 +146,6 @@ export default function Dashboard() {
           )}
         </div>
       )}
-
-      <DueRecurring categories={categories} />
 
       {empty ? (
         <Card>
@@ -158,34 +164,19 @@ export default function Dashboard() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <SectionCard
-              title="Cashflow"
-              description="Income vs expenses, last 6 months"
-              icon={ChartColumn}
-              className="lg:col-span-8"
-            >
-              <Suspense fallback={chartPlaceholder}>
-                <MonthlyTrendChart totals={totals} />
-              </Suspense>
+          {/* past months: no forecast, so show how each budget ended up */}
+          {!showForecast && budgets.length > 0 && (
+            <SectionCard title="Budgets" description="Closest to their limit first" icon={Target}>
+              <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} />
             </SectionCard>
-            <SectionCard
-              title="Spending by category"
-              description="Where your money went"
-              icon={ChartBar}
-              tone="orange"
-              className="lg:col-span-4"
-            >
-              <CategoryBreakdown transactions={transactions} categories={categories} month={month} />
-            </SectionCard>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <SectionCard
               title="Recent transactions"
               description={monthName}
               icon={ReceiptText}
-              className="lg:col-span-8"
+              className="lg:col-span-7"
               actions={
                 <Button asChild variant="ghost" size="sm" className="font-bold text-primary hover:text-primary">
                   <Link to="/transactions">See all</Link>
@@ -194,21 +185,35 @@ export default function Dashboard() {
             >
               <RecentTransactions transactions={transactions} categories={categories} />
             </SectionCard>
-            <SectionCard title="Budgets" description="Closest to their limit first" icon={Target} className="lg:col-span-4">
-              <BudgetSummary budgets={budgets} categories={categories} transactions={transactions} pace={monthProgress(month)} limit={3} />
+            <SectionCard
+              title="Spending by category"
+              description="Where your money went"
+              icon={ChartBar}
+              tone="orange"
+              className="lg:col-span-5"
+            >
+              <CategoryBreakdown transactions={transactions} categories={categories} month={month} />
             </SectionCard>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <SectionCard title="Daily spending" description={monthName} icon={CalendarDays} tone="orange" className="lg:col-span-8">
+          {/* the longer view, for when you want it */}
+          <MoreInsights summary="6-month trend, daily spending and savings goals">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              <SectionCard title="Money in and out" description="Income and expenses, last 6 months" icon={ChartColumn} className="lg:col-span-7">
+                <Suspense fallback={chartPlaceholder}>
+                  <MonthlyTrendChart totals={totals} />
+                </Suspense>
+              </SectionCard>
+              <SectionCard title="Savings goals" description="Unfinished goals first" icon={PiggyBank} className="lg:col-span-5">
+                <GoalsSummary goals={goals} />
+              </SectionCard>
+            </div>
+            <SectionCard title="Daily spending" description={`How much you spent each day in ${format(month, 'MMMM')}`} icon={CalendarDays} tone="orange">
               <Suspense fallback={chartPlaceholder}>
                 <DailySpendingChart transactions={transactions} month={month} />
               </Suspense>
             </SectionCard>
-            <SectionCard title="Savings goals" description="Unfinished goals first" icon={PiggyBank} className="lg:col-span-4">
-              <GoalsSummary goals={goals} />
-            </SectionCard>
-          </div>
+          </MoreInsights>
         </>
       )}
 
@@ -239,13 +244,52 @@ function change(current: number, previous: number, previousName: string, upIsGoo
   }
 }
 
-// Savings rate moves in percentage points, so no percent badge
+// "Up from 61% in October": the old figure is easier to read than a change in percentage points
 function rateChange(rate: number, previousRate: number, previousName: string): Delta {
   const diff = rate - previousRate
   if (diff === 0) return { text: `Same as ${previousName}`, direction: 'flat' }
   return {
-    text: `${diff > 0 ? 'Up' : 'Down'} ${Math.abs(diff)} points from ${previousName}`,
+    text: `${diff > 0 ? 'Up' : 'Down'} from ${previousRate}% in ${previousName}`,
     direction: diff > 0 ? 'up' : 'down',
     good: diff > 0,
   }
+}
+
+const MORE_KEY = 'monetra:dashboard-more'
+
+// Extra charts stay folded away until asked for; the choice is remembered on this device
+function MoreInsights({ summary, children }: { summary: string; children: ReactNode }) {
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem(MORE_KEY) === 'open'
+    } catch {
+      return false
+    }
+  })
+  function toggle() {
+    const next = !open
+    setOpen(next)
+    try {
+      localStorage.setItem(MORE_KEY, next ? 'open' : 'closed')
+    } catch {
+      // storage blocked: it just won't be remembered
+    }
+  }
+  return (
+    <section className="space-y-6">
+      <Button
+        variant="outline"
+        onClick={toggle}
+        aria-expanded={open}
+        className="h-auto w-full justify-between rounded-2xl px-5 py-3.5 text-left whitespace-normal"
+      >
+        <span>
+          <span className="block font-bold">{open ? 'Show less' : 'More insights'}</span>
+          {!open && <span className="block text-xs font-normal text-muted-foreground">{summary}</span>}
+        </span>
+        <ChevronDown className={cn('size-5 shrink-0 transition-transform', open && 'rotate-180')} aria-hidden="true" />
+      </Button>
+      {open && children}
+    </section>
+  )
 }

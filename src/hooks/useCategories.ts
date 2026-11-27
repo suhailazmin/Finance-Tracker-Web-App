@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Category, TransactionType } from '../lib/types'
+import { friendlyError } from '../lib/errors'
 
 export type CategoryInput = { name: string; type: TransactionType; color: string }
 
@@ -10,7 +11,7 @@ export type CategoryUsage = { transactions: number; budgets: number; rules: numb
 
 // Postgres "unique (user_id, name)" violation -> a message people understand
 function friendly(message: string, name: string) {
-  return /duplicate key|unique/i.test(message) ? `You already have a category called “${name}”.` : message
+  return /duplicate key|unique/i.test(message) ? `You already have a category called “${name}”.` : friendlyError(message)
 }
 
 export function useCategories() {
@@ -32,7 +33,7 @@ export function useCategories() {
       .then(({ data, error }) => {
         done()
         if (ignore) return
-        setError(error?.message ?? '')
+        setError(friendlyError(error))
         if (!error) setCategories((data ?? []) as Category[])
         setLoaded(true)
       })
@@ -61,7 +62,7 @@ export function useCategories() {
   async function remove(id: string) {
     const { error } = await supabase.from('categories').delete().eq('id', id)
     if (!error) refresh()
-    return error?.message
+    return friendlyError(error) || undefined
   }
 
   return { categories, loaded, error, add, update, remove }

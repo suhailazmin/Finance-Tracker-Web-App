@@ -13,6 +13,7 @@ import { useAmountsHidden } from '../lib/privacy'
 import { dueOccurrences, type Due } from '../lib/recurring'
 import { refreshAll } from '../lib/refresh'
 import type { Category, RecurringTransaction } from '../lib/types'
+import { toast } from 'sonner'
 
 const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/
 
@@ -76,18 +77,19 @@ function DueRow({ item, due, category, onAdd, onSkip }: RowProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  async function run(action: () => Promise<string | undefined>) {
+  async function run(action: () => Promise<string | undefined>, success: string) {
     setBusy(true)
     setError('')
     const message = await action()
     setBusy(false)
     if (message) setError(message)
+    else toast.success(success, { description: item.description })
   }
 
   function add() {
     const clean = amount.trim().replace(/,/g, '')
     if (!AMOUNT_PATTERN.test(clean) || Number(clean) <= 0) return setError('Enter an amount above RM 0.')
-    run(() => onAdd(Number(clean)))
+    run(() => onAdd(Number(clean)), `Added ${formatRM(Number(clean))}`)
   }
 
   return (
@@ -115,7 +117,7 @@ function DueRow({ item, due, category, onAdd, onSkip }: RowProps) {
         )}
       </div>
       <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" disabled={busy} onClick={() => run(onSkip)}>
+        <Button variant="ghost" size="sm" disabled={busy} onClick={() => run(onSkip, `Skipped for ${format(due.date, 'MMMM')}`)}>
           Skip this month
         </Button>
         <Button size="sm" disabled={busy} onClick={add}>

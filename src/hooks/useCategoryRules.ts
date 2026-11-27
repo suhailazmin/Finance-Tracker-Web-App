@@ -4,6 +4,7 @@ import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import { normalizeKeyword } from '../lib/categorize'
 import type { CategoryRule } from '../lib/types'
+import { friendlyError } from '../lib/errors'
 
 export function useCategoryRules() {
   // reload when the user pulls to refresh
@@ -22,7 +23,7 @@ export function useCategoryRules() {
       .then(({ data, error }) => {
         done()
         if (ignore) return
-        setError(error?.message ?? '')
+        setError(friendlyError(error))
         setRules((data ?? []) as CategoryRule[])
       })
     return () => {
@@ -38,7 +39,7 @@ export function useCategoryRules() {
       .from('category_rules')
       .insert({ keyword: normalizeKeyword(keyword), category_id: categoryId, priority })
     if (!error) refresh()
-    return error?.message
+    return friendlyError(error) || undefined
   }
 
   // deletes at once; the toast offers Undo

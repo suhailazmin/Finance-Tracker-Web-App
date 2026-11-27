@@ -42,7 +42,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 ## Features
 
 ### Tracking
-- **Dashboard**: the month's balance and savings rate, income and expenses with change vs last month, a 6-month cashflow chart, spending by category (tap a category to see its transactions), daily spending, recent transactions, budgets and goals
+- **Dashboard**: the month's balance, income and expenses compared with last month, how much of your income you kept, the month-end forecast, budgets that are heading over, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
 - **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. **Search** descriptions across every month, and filter by category, expense or income
 - **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns, reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`), and lets you review everything before saving. Importing the same file twice never creates duplicates
 - **Recurring transactions**: salary, rent and bills are added every month automatically, or shown on the dashboard to confirm when the amount changes (like TNB). Missed months are caught up, and nothing is ever added twice
@@ -50,12 +50,12 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 
 ### Planning
 - **Month-end forecast**: "at this pace you'll spend about RM X this month", worked out from your everyday spending rate plus the recurring bills still to come
-- **Budgets**: a monthly limit per category with a "today" marker, an on-pace forecast, and **alerts before you go over**
+- **Budgets**: a monthly limit per category with a "today" marker, an estimate for the month end, and **alerts before you go over**
 - **Savings goals**: target, deadline and progress, with how much to save each month. Suggests an emergency fund of 3–6 months of your average spending
 - **Categories and auto-categorization**: create, rename and recolour categories, and an icon is picked from the name. Keyword rules (e.g. `PETRONAS` → Petrol) categorize new and imported transactions, and new accounts start with rules for common Malaysian merchants
 
 ### On your phone
-- **Installable**: add it to the Home Screen and it opens full screen with a splash screen and a floating tab bar
+- **Installable**: add it to the Home Screen and it opens full screen with a splash screen and a floating tab bar. Every page is reachable from the tab bar, under **More**
 - **Offline**: opens instantly with no signal and shows your last-loaded data. Transactions you add offline are saved on the phone and sync when you're back online
 - **Pull to refresh**, and pages that load quickly, because each page downloads only when it's opened
 
@@ -74,6 +74,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 | UI | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com) (Radix), [Lucide](https://lucide.dev) icons, [Sonner](https://sonner.emilkowal.ski) toasts, Nunito font |
 | Charts and data | [Recharts](https://recharts.org), date-fns, [Papa Parse](https://www.papaparse.com) for CSV |
 | Offline | [vite-plugin-pwa](https://vite-pwa-org.netlify.app) (Workbox service worker) |
+| Testing | [Vitest](https://vitest.dev) |
 | Backend | [Supabase](https://supabase.com): Postgres, Auth and row-level security |
 | Hosting | [Vercel](https://vercel.com), plus a GitHub Actions job that keeps the free Supabase project awake |
 
@@ -128,6 +129,9 @@ Open http://localhost:5173 and create an account.
 | `npm run build` | Type-check and build for production into `dist/`, including the service worker |
 | `npm run preview` | Serve the production build locally. Use this to try offline mode |
 | `npm run lint` | Lint with Oxlint |
+| `npm test` | Run the tests for the money maths: budgets, goal plans, auto-categorize rules and forecasts (`npm run test:watch` reruns them as you edit) |
+
+Every pull request runs the tests, lint and a production build on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 ## Deploying
 
