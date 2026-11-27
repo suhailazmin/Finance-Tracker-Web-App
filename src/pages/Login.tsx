@@ -84,7 +84,13 @@ export default function Login() {
     <main className="app-backdrop flex min-h-svh items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="flex justify-center">
-          <img src={monetraLogo} alt="Monetra – Expenses Tracker" width={200} height={204} className="w-50" />
+          <img
+            src={monetraLogo}
+            alt="Monetra – Expenses Tracker"
+            width={200}
+            height={204}
+            className="w-50 dark:box-content dark:rounded-3xl dark:bg-brand-ivory dark:p-4"
+          />
         </h1>
 
         <Card className="shadow-xl shadow-brand-forest/10 [--card-spacing:--spacing(6)]">

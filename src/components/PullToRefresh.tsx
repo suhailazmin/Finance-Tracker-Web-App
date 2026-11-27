@@ -100,7 +100,7 @@ export default function PullToRefresh() {
       >
         <div
           className={cn(
-            'flex size-11 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-border transition-[opacity,scale] duration-200',
+            'flex size-11 items-center justify-center rounded-full bg-card shadow-lg ring-1 ring-border transition-[opacity,scale] duration-200',
             pull > 0 || refreshing ? 'opacity-100' : 'opacity-0',
             ready && 'scale-110'
           )}

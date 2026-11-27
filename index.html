@@ -16,6 +16,15 @@
     <title>Monetra – Expenses Tracker</title>
 
     <script>
+      // Dark mode before the first paint, so there's no white flash (kept in sync by src/lib/theme.ts)
+      try {
+        var theme = localStorage.getItem('monetra:theme')
+        if (theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {
+        // storage blocked: follows the light default until the app loads
+      }
       // Splash plays once per launch: skip it for reloads in the same session
       try {
         if (sessionStorage.getItem('monetra:splash-seen')) document.documentElement.classList.add('no-splash')

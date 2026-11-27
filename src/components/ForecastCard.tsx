@@ -44,7 +44,7 @@ export default function ForecastCard({ forecast, month, income, previousExpenses
           <div className="h-full" style={{ width: `${(spent / scale) * 100}%`, backgroundColor: chartColors.expenses }} />
           <div
             className="h-full border-l-2 border-card"
-            style={{ width: `${(stillToCome / scale) * 100}%`, backgroundColor: `color-mix(in srgb, ${chartColors.expenses} 35%, white)` }}
+            style={{ width: `${(stillToCome / scale) * 100}%`, backgroundColor: `color-mix(in srgb, ${chartColors.expenses} 35%, var(--card))` }}
           />
           {income > 0 && (
             <div className="absolute inset-y-0 w-0.5 bg-foreground/70" style={{ left: `calc(${Math.min(1, income / scale) * 100}% - 1px)` }} />
@@ -56,7 +56,7 @@ export default function ForecastCard({ forecast, month, income, previousExpenses
             Spent so far <strong className="text-foreground">{formatRM(spent)}</strong>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded-sm" style={{ backgroundColor: `color-mix(in srgb, ${chartColors.expenses} 35%, white)` }} />
+            <span className="size-2.5 rounded-sm" style={{ backgroundColor: `color-mix(in srgb, ${chartColors.expenses} 35%, var(--card))` }} />
             Still expected <strong className="text-foreground">about {formatRM(Math.round(stillToCome))}</strong>
           </span>
           {income > 0 && (

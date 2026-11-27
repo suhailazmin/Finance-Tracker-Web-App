@@ -51,7 +51,7 @@ export default function CategoryIcon({ category, className }: { category?: Categ
   return (
     <span
       className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl', className)}
-      style={{ backgroundColor: `color-mix(in srgb, ${color} 14%, white)`, color }}
+      style={{ backgroundColor: `color-mix(in srgb, ${color} 14%, var(--card))`, color }}
       aria-hidden="true"
     >
       {createElement(iconFor(category), { className: 'size-[18px]' })}

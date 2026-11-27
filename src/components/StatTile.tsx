@@ -37,7 +37,7 @@ export default function StatTile({ label, value, icon: Icon, keyColor, delta, de
       <div className="flex min-w-0 items-center gap-2.5">
         <span
           className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"
-          style={keyColor ? { backgroundColor: `color-mix(in srgb, ${keyColor} 16%, white)`, color: keyColor } : undefined}
+          style={keyColor ? { backgroundColor: `color-mix(in srgb, ${keyColor} 16%, var(--card))`, color: keyColor } : undefined}
         >
           <Icon className="size-[18px]" aria-hidden="true" />
         </span>

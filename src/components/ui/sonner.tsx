@@ -2,11 +2,10 @@ import type { CSSProperties } from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
-// Monetra has no dark mode toggle, so the theme is fixed (shadcn's version reads next-themes)
+// The theme is passed in from Root (shadcn's version reads next-themes, which Monetra doesn't use)
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme="light"
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

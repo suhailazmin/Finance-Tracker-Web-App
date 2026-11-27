@@ -5,11 +5,13 @@ import {
   CloudOff,
   LayoutDashboard,
   LogOut,
+  Moon,
   PiggyBank,
   Plus,
   ReceiptText,
   Repeat,
   Shapes,
+  Sun,
   Upload,
   Target,
   UserRound,
@@ -21,6 +23,7 @@ import ConfirmDialog from './ConfirmDialog'
 import HideAmountsButton from './HideAmountsButton'
 import { runRecurringOnce } from '../lib/recurringRunner'
 import { useOnline } from '../lib/online'
+import { setThemePref, useTheme } from '../lib/theme'
 import { flushOutbox, usePending } from '../lib/outbox'
 import { refreshAll } from '../lib/refresh'
 import { toast } from 'sonner'
@@ -53,6 +56,7 @@ export default function Layout() {
   const [confirmSignOut, setConfirmSignOut] = useState(false)
 
   const online = useOnline()
+  const { dark } = useTheme()
   const pending = usePending(session?.user.id)
 
   useEffect(() => {
@@ -83,8 +87,8 @@ export default function Layout() {
   return (
     <div className="app-backdrop min-h-svh">
       {/* ---------- Desktop sidebar ---------- */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border/70 bg-white/80 px-4 py-6 backdrop-blur-md lg:flex">
-        <Link to="/" className="flex items-center gap-2.5 px-2 text-xl font-extrabold tracking-tight text-brand-forest">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-border/70 bg-card/80 px-4 py-6 backdrop-blur-md lg:flex">
+        <Link to="/" className="flex items-center gap-2.5 px-2 text-xl font-extrabold tracking-tight text-brand-forest dark:text-primary">
           <img src={monetraIcon} alt="" width={40} height={40} className="size-10" />
           Monetra
         </Link>
@@ -127,7 +131,7 @@ export default function Layout() {
 
       <div className="lg:pl-64">
         {/* ---------- Top bar: green on phones, light on desktop ---------- */}
-        <header className="sticky top-0 z-10 bg-primary pt-[env(safe-area-inset-top)] text-primary-foreground lg:border-b lg:border-border/70 lg:bg-white/70 lg:text-foreground lg:backdrop-blur-md">
+        <header className="sticky top-0 z-10 bg-brand-forest pt-[env(safe-area-inset-top)] text-white lg:border-b lg:border-border/70 lg:bg-card/70 lg:text-foreground lg:backdrop-blur-md">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 lg:px-8">
             <Link to="/" className="flex items-center gap-2 text-lg font-extrabold tracking-tight lg:hidden">
               <img src={monetraIcon} alt="" width={36} height={36} className="size-9 rounded-full bg-white/90 p-0.5" />
@@ -176,6 +180,9 @@ export default function Layout() {
                     <Link to="/account">
                       <UserRound /> Account
                     </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setThemePref(dark ? 'light' : 'dark')}>
+                    {dark ? <Sun /> : <Moon />} {dark ? 'Light mode' : 'Dark mode'}
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/import">

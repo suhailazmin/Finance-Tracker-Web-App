@@ -305,7 +305,7 @@ function Stat({ label, value, icon: Icon, color }: { label: string; value: strin
       <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground sm:text-sm">
         <span
           className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary sm:size-8"
-          style={color ? { backgroundColor: `color-mix(in srgb, ${color} 16%, white)`, color } : undefined}
+          style={color ? { backgroundColor: `color-mix(in srgb, ${color} 16%, var(--card))`, color } : undefined}
         >
           <Icon className="size-3.5 sm:size-4" aria-hidden="true" />
         </span>
