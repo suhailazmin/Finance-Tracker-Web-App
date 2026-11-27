@@ -7,6 +7,7 @@ import {
   PiggyBank,
   Plus,
   ReceiptText,
+  Shapes,
   Target,
   UserRound,
   WandSparkles,
@@ -33,6 +34,7 @@ const links = [
   { to: '/transactions', label: 'Transactions', short: 'Activity', icon: ReceiptText },
   { to: '/budgets', label: 'Budgets', short: 'Budgets', icon: Target },
   { to: '/goals', label: 'Savings goals', short: 'Goals', icon: PiggyBank },
+  { to: '/categories', label: 'Categories', short: 'Categories', icon: Shapes },
   { to: '/rules', label: 'Auto-categorize', short: 'Rules', icon: WandSparkles },
 ]
 
@@ -117,6 +119,11 @@ export default function Layout() {
                   <DropdownMenuItem asChild>
                     <Link to="/account">
                       <UserRound /> Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="lg:hidden">
+                    <Link to="/categories">
+                      <Shapes /> Categories
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="lg:hidden">
