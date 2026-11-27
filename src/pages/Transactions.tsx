@@ -20,7 +20,6 @@ import { useCategoryRules } from '../hooks/useCategoryRules'
 import { SEARCH_LIMIT, useTransactionSearch } from '../hooks/useTransactionSearch'
 import { useTransactions } from '../hooks/useTransactions'
 import { chartColors } from '../lib/chartTheme'
-import { exportTransactions, transactionsFilename } from '../lib/exportCsv'
 import { formatRM } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
 
@@ -111,6 +110,8 @@ export default function Transactions() {
     setExporting(true)
     const monthRange = { from: format(month, 'yyyy-MM-dd'), to: format(endOfMonth(month), 'yyyy-MM-dd') }
     try {
+      // the CSV code (and papaparse) only downloads when someone exports
+      const { exportTransactions, transactionsFilename } = await import('../lib/exportCsv')
       const result = await exportTransactions(
         searching ? { q, category, type, ...(scope === 'month' ? monthRange : {}) } : monthRange,
         categories,

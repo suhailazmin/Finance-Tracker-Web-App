@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { addMonths, format, startOfMonth } from 'date-fns'
 import {
@@ -27,8 +27,6 @@ import RecentTransactions from '../components/RecentTransactions'
 import SectionCard from '../components/SectionCard'
 import StatTile, { type Delta } from '../components/StatTile'
 import CategoryBreakdown from '../components/charts/CategoryBreakdown'
-import DailySpendingChart from '../components/charts/DailySpendingChart'
-import MonthlyTrendChart from '../components/charts/MonthlyTrendChart'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useBudgets } from '../hooks/useBudgets'
@@ -41,6 +39,12 @@ import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
 import { forecastMonth, isCurrentMonth } from '../lib/forecast'
 import { formatRM } from '../lib/format'
+
+// The chart library is the heaviest part of the dashboard, so the charts load just after
+// the page appears (balance and tiles show first)
+const DailySpendingChart = lazy(() => import('../components/charts/DailySpendingChart'))
+const MonthlyTrendChart = lazy(() => import('../components/charts/MonthlyTrendChart'))
+const chartPlaceholder = <div className="h-56 animate-pulse rounded-xl bg-muted/60" aria-hidden="true" />
 
 export default function Dashboard() {
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
@@ -161,7 +165,9 @@ export default function Dashboard() {
               icon={ChartColumn}
               className="lg:col-span-8"
             >
-              <MonthlyTrendChart totals={totals} />
+              <Suspense fallback={chartPlaceholder}>
+                <MonthlyTrendChart totals={totals} />
+              </Suspense>
             </SectionCard>
             <SectionCard
               title="Spending by category"
@@ -195,7 +201,9 @@ export default function Dashboard() {
 
           <div className="grid gap-6 lg:grid-cols-12">
             <SectionCard title="Daily spending" description={monthName} icon={CalendarDays} tone="orange" className="lg:col-span-8">
-              <DailySpendingChart transactions={transactions} month={month} />
+              <Suspense fallback={chartPlaceholder}>
+                <DailySpendingChart transactions={transactions} month={month} />
+              </Suspense>
             </SectionCard>
             <SectionCard title="Savings goals" description="Unfinished goals first" icon={PiggyBank} className="lg:col-span-4">
               <GoalsSummary goals={goals} />

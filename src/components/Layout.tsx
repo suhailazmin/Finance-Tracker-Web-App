@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import {
   ChevronDown,
@@ -19,6 +19,7 @@ import { useAuth } from '../auth/AuthContext'
 import ConfirmDialog from './ConfirmDialog'
 import HideAmountsButton from './HideAmountsButton'
 import { runRecurringOnce } from '../lib/recurringRunner'
+import PageLoading from './PageLoading'
 import PullToRefresh from './PullToRefresh'
 import { Button } from '@/components/ui/button'
 import {
@@ -163,7 +164,9 @@ export default function Layout() {
         <PullToRefresh />
 
         <main className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:px-8 lg:pt-8 lg:pb-12">
-          <Outlet />
+          <Suspense fallback={<PageLoading />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

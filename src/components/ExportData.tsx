@@ -4,15 +4,7 @@ import { toast } from 'sonner'
 import SectionCard from './SectionCard'
 import { Button } from '@/components/ui/button'
 import { useCategories } from '../hooks/useCategories'
-import {
-  exportBudgets,
-  exportCategories,
-  exportGoals,
-  exportRecurring,
-  exportTransactions,
-  transactionsFilename,
-  type SaveResult,
-} from '../lib/exportCsv'
+import type { SaveResult } from '../lib/exportCsv'
 import { format } from 'date-fns'
 
 type Job = 'transactions' | 'budgets' | 'goals' | 'recurring' | 'categories'
@@ -37,11 +29,13 @@ export default function ExportData() {
     }
   }
 
+  // the CSV code (and papaparse) only downloads when someone exports
+  const csv = () => import('../lib/exportCsv')
   const others: { job: Job; label: string; fn: () => Promise<SaveResult> }[] = [
-    { job: 'budgets', label: 'Budgets', fn: () => exportBudgets(categories) },
-    { job: 'goals', label: 'Savings goals', fn: exportGoals },
-    { job: 'recurring', label: 'Recurring', fn: () => exportRecurring(categories) },
-    { job: 'categories', label: 'Categories & rules', fn: () => exportCategories(categories) },
+    { job: 'budgets', label: 'Budgets', fn: async () => (await csv()).exportBudgets(categories) },
+    { job: 'goals', label: 'Savings goals', fn: async () => (await csv()).exportGoals() },
+    { job: 'recurring', label: 'Recurring', fn: async () => (await csv()).exportRecurring(categories) },
+    { job: 'categories', label: 'Categories & rules', fn: async () => (await csv()).exportCategories(categories) },
   ]
 
   return (
@@ -59,9 +53,10 @@ export default function ExportData() {
           <Button
             disabled={busy !== null}
             onClick={() =>
-              run('transactions', 'Transactions', () =>
-                exportTransactions({}, categories, transactionsFilename(`all-${format(new Date(), 'yyyy-MM-dd')}`))
-              )
+              run('transactions', 'Transactions', async () => {
+                const { exportTransactions, transactionsFilename } = await csv()
+                return exportTransactions({}, categories, transactionsFilename(`all-${format(new Date(), 'yyyy-MM-dd')}`))
+              })
             }
           >
             <Download />
