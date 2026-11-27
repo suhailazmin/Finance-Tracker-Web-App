@@ -14,6 +14,7 @@ import {
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import ConfirmDialog from './ConfirmDialog'
+import HideAmountsButton from './HideAmountsButton'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -96,36 +97,39 @@ export default function Layout() {
               Welcome back{email ? ',' : ''} <span className="font-bold text-foreground">{email.split('@')[0]}</span>
             </p>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="flex items-center gap-2 rounded-full p-1 pr-2 outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50 lg:hover:bg-muted"
-                aria-label="Account menu"
-              >
-                <span className="flex size-9 items-center justify-center rounded-full bg-brand-orange text-sm font-extrabold text-brand-ink uppercase">
-                  {email.charAt(0) || '?'}
-                </span>
-                <span className="hidden max-w-48 truncate text-sm font-semibold sm:inline">{email}</span>
-                <ChevronDown className="size-4 opacity-70" aria-hidden="true" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                <DropdownMenuLabel className="truncate font-normal text-muted-foreground">{email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/account">
-                    <UserRound /> Account
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="lg:hidden">
-                  <Link to="/rules">
-                    <WandSparkles /> Auto-categorize rules
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onSelect={() => setConfirmSignOut(true)}>
-                  <LogOut /> Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <HideAmountsButton className="hover:bg-white/10 lg:text-muted-foreground lg:hover:bg-muted lg:hover:text-foreground" />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="flex items-center gap-2 rounded-full p-1 pr-2 outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50 lg:hover:bg-muted"
+                  aria-label="Account menu"
+                >
+                  <span className="flex size-9 items-center justify-center rounded-full bg-brand-orange text-sm font-extrabold text-brand-ink uppercase">
+                    {email.charAt(0) || '?'}
+                  </span>
+                  <span className="hidden max-w-48 truncate text-sm font-semibold sm:inline">{email}</span>
+                  <ChevronDown className="size-4 opacity-70" aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                  <DropdownMenuLabel className="truncate font-normal text-muted-foreground">{email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/account">
+                      <UserRound /> Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="lg:hidden">
+                    <Link to="/rules">
+                      <WandSparkles /> Auto-categorize rules
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" onSelect={() => setConfirmSignOut(true)}>
+                    <LogOut /> Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </header>
 

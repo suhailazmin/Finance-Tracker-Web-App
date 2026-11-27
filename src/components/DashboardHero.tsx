@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { PiggyBank } from 'lucide-react'
 import monetraIcon from '../assets/monetra-icon.png'
 import { formatRM } from '../lib/format'
+import HideAmountsButton from './HideAmountsButton'
 
 // Green balance card: the month's balance as the headline number, with the mascot
 export default function DashboardHero({ month, balance, income }: { month: Date; balance: number; income: number }) {
@@ -26,7 +27,10 @@ export default function DashboardHero({ month, balance, income }: { month: Date;
       </div>
 
       <div className="relative mt-4">
-        <p className="text-sm text-white/75">Total balance</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm text-white/75">Total balance</p>
+          <HideAmountsButton className="size-7 text-white/80 hover:bg-white/15 hover:text-white [&_svg]:size-4" />
+        </div>
         <p className="text-4xl font-extrabold tracking-tight sm:text-[2.75rem]">{formatRM(balance)}</p>
         <p className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
           <PiggyBank className="size-3.5 shrink-0" aria-hidden="true" />
