@@ -24,11 +24,18 @@ import { formatRM, surplusLabel } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
 import { sumRM } from '../lib/money'
 import { friendlyError } from '../lib/errors'
+import { amountFromQuery } from '../lib/search'
 
-type Scope = 'month' | 'all'
+type Scope = 'month' | 'all' | 'dates'
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+const shortDate = (d: string) => format(parseISO(d), 'd MMM yyyy')
+// for export file names; only called when Export is pressed
+const todayStamp = () => format(new Date(), 'yyyy-MM-dd')
 
 export default function Transactions() {
-  // Filters live in the address (?q=grab&category=…&type=…&scope=all&month=2026-11),
+  // Filters live in the address (?q=grab&category=…&type=…&scope=all&month=2026-11, or
+  // scope=dates&from=2026-11-01&to=2026-11-15),
   // so the dashboard can link straight to "Shopping in November" and Back works
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
@@ -37,7 +44,13 @@ export default function Transactions() {
   // typing or filtering searches every month unless a month was chosen (or linked) explicitly
   const scopeParam = params.get('scope')
   const scope: Scope =
-    scopeParam === 'all' || scopeParam === 'month' ? scopeParam : q.trim() || category || type ? 'all' : 'month'
+    scopeParam === 'all' || scopeParam === 'month' || scopeParam === 'dates'
+      ? scopeParam
+      : q.trim() || category || type
+        ? 'all'
+        : 'month'
+  const fromParam = params.get('from') ?? ''
+  const toParam = params.get('to') ?? ''
 
   const [month, setMonthState] = useState(() => {
     const m = params.get('month')
@@ -66,21 +79,34 @@ export default function Transactions() {
     if (params.has('month')) setFilter({ month: format(m, 'yyyy-MM') })
   }
 
-  const searching = Boolean(q.trim() || category || type || scope === 'all')
+  const searching = Boolean(q.trim() || category || type || scope !== 'month')
 
   const { categories } = useCategories()
   const { rules } = useCategoryRules()
   const monthView = useTransactions(month)
-  const search = useTransactionSearch(
-    {
-      q,
-      category,
-      type,
-      from: scope === 'month' ? format(month, 'yyyy-MM-dd') : undefined,
-      to: scope === 'month' ? format(endOfMonth(month), 'yyyy-MM-dd') : undefined,
-    },
-    searching
-  )
+  // the dates searched: this month, a chosen range (either end can be left open), or everything
+  const monthRange = { from: format(month, 'yyyy-MM-dd'), to: format(endOfMonth(month), 'yyyy-MM-dd') }
+  const range =
+    scope === 'month'
+      ? monthRange
+      : scope === 'dates'
+        ? { from: DATE.test(fromParam) ? fromParam : undefined, to: DATE.test(toParam) ? toParam : undefined }
+        : {}
+  const backwards = Boolean(range.from && range.to && range.from > range.to)
+  const rangeText =
+    scope === 'month'
+      ? `in ${format(month, 'MMMM yyyy')}`
+      : scope === 'dates'
+        ? range.from && range.to
+          ? `from ${shortDate(range.from)} to ${shortDate(range.to)}`
+          : range.from
+            ? `since ${shortDate(range.from)}`
+            : range.to
+              ? `up to ${shortDate(range.to)}`
+              : 'in any month'
+        : 'in all months'
+  const search = useTransactionSearch({ q, category, type, ...range }, searching)
+  const amountSearch = amountFromQuery(q)
   const view = searching ? search : monthView
   const { transactions, loading, error } = view
 
@@ -111,14 +137,13 @@ export default function Transactions() {
   const [exporting, setExporting] = useState(false)
   async function exportView() {
     setExporting(true)
-    const monthRange = { from: format(month, 'yyyy-MM-dd'), to: format(endOfMonth(month), 'yyyy-MM-dd') }
     try {
       // the CSV code (and papaparse) only downloads when someone exports
       const { exportTransactions, transactionsFilename } = await import('../lib/exportCsv')
       const result = await exportTransactions(
-        searching ? { q, category, type, ...(scope === 'month' ? monthRange : {}) } : monthRange,
+        searching ? { q, category, type, ...range } : monthRange,
         categories,
-        transactionsFilename(searching ? `search-${format(new Date(), 'yyyy-MM-dd')}` : format(month, 'yyyy-MM'))
+        transactionsFilename(searching ? `search-${todayStamp()}` : format(month, 'yyyy-MM'))
       )
       if (result.saved) toast.success('Exported', { description: `${result.filename} · ${result.rows} transaction${result.rows === 1 ? '' : 's'}` })
     } catch (e) {
@@ -176,7 +201,7 @@ export default function Transactions() {
                   {searching
                     ? loading
                       ? 'Searching…'
-                      : `${search.count} found${scope === 'month' ? ` in ${monthName}` : ' in all months'}`
+                      : `${search.count} found ${rangeText}`
                     : monthName}
                 </p>
               </div>
@@ -192,7 +217,7 @@ export default function Transactions() {
                   <Download /> {exporting ? 'Preparing…' : 'Export'}
                 </Button>
                 {searching ? (
-                  <Button variant="ghost" size="sm" onClick={() => setFilter({ q: '', category: '', type: '', scope: '', month: '' })}>
+                  <Button variant="ghost" size="sm" onClick={() => setFilter({ q: '', category: '', type: '', scope: '', month: '', from: '', to: '' })}>
                     <X /> Clear
                   </Button>
                 ) : (
@@ -209,7 +234,7 @@ export default function Transactions() {
                 type="search"
                 value={q}
                 onChange={(e) => setFilter({ q: e.target.value })}
-                placeholder="Search descriptions, e.g. Grab"
+                placeholder="Merchant or amount, e.g. Grab"
                 aria-label="Search transactions"
                 className="pl-8"
               />
@@ -251,15 +276,42 @@ export default function Transactions() {
             </div>
 
             <SegmentedControl
-              label="Which months to show"
+              label="Which dates to show"
               className="text-xs"
               value={scope}
-              onChange={(s: Scope) => setFilter({ scope: s, month: s === 'month' ? format(month, 'yyyy-MM') : '' })}
+              onChange={(s: Scope) =>
+                setFilter({
+                  scope: s,
+                  month: s === 'month' ? format(month, 'yyyy-MM') : '',
+                  // start a new range on the month being looked at
+                  from: s === 'dates' ? fromParam || monthRange.from : '',
+                  to: s === 'dates' ? toParam || monthRange.to : '',
+                })
+              }
               options={[
-                { value: 'month', label: monthName },
+                { value: 'month', label: format(month, 'MMM yyyy') },
                 { value: 'all', label: 'All months' },
+                { value: 'dates', label: 'Dates' },
               ]}
             />
+            {scope === 'dates' && (
+              <div className="grid grid-cols-2 gap-2">
+                <label className="space-y-1 text-xs font-semibold text-muted-foreground">
+                  From
+                  <Input type="date" value={fromParam} max={toParam || undefined} onChange={(e) => setFilter({ from: e.target.value })} className="h-8" />
+                </label>
+                <label className="space-y-1 text-xs font-semibold text-muted-foreground">
+                  To
+                  <Input type="date" value={toParam} min={fromParam || undefined} onChange={(e) => setFilter({ to: e.target.value })} className="h-8" />
+                </label>
+                {backwards && <p className="col-span-2 text-xs text-destructive">The From date is after the To date, so nothing can match. Swap them.</p>}
+              </div>
+            )}
+            {amountSearch && (
+              <p className="text-xs text-muted-foreground">
+                Showing transactions of exactly {formatRM(amountSearch.amount)}, and descriptions containing “{amountSearch.text}”.
+              </p>
+            )}
           </div>
 
           {error && <ErrorAlert message={error} className="m-5 w-auto" />}
@@ -273,8 +325,8 @@ export default function Transactions() {
                   {[q.trim() && `“${q.trim()}”`, categoryName, type && (type === 'income' ? 'income' : 'expenses')]
                     .filter(Boolean)
                     .join(' · ')}{' '}
-                  {scope === 'month' ? `in ${monthName}` : 'in any month'}. Try fewer filters
-                  {scope === 'month' ? ' or All months' : ''}.
+                  {rangeText}. Try fewer filters
+                  {scope !== 'all' ? ' or All months' : ''}.
                 </p>
               </div>
             ) : (

@@ -43,7 +43,8 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 
 ### Tracking
 - **Dashboard**: the monthly surplus (income minus spending, or the shortfall when spending is higher), income and expenses compared with last month, how much of your income you kept, **your priorities**, the month-end forecast, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
-- **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. **Search** descriptions across every month, and filter by category, expense or income
+- **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. Tap one for its **details**: full description, amount, date, category, type, where it came from (added by you, imported, recurring) and when it was added, with a link to everything from the same merchant
+- **Search**: by merchant or by **exact amount** (`12.50` or `RM 12.50`), across every month, this month or **a date range**, combined with category and expense/income filters. Export saves exactly what's found
 - **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns, reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`), and lets you review everything before saving. Importing the same file twice never creates duplicates
 - **Recurring transactions**: salary, rent and bills are added every month automatically, or shown on the dashboard to confirm when the amount changes (like TNB). Missed months are caught up, and nothing is ever added twice
 - **Export to CSV**: download all your data, or exactly what's on screen, for a backup or a spreadsheet. Monetra can import its own export back
@@ -63,7 +64,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 ### Comfort and privacy
 - **Dark mode**: Light, Dark or System (follows your phone)
 - **Hide amounts**: one tap turns every RM figure into `RM ••••` for using the app in public
-- **Undo** instead of "Are you sure?" for deletes. Signing out and deleting a category still ask first
+- **Undo** instead of "Are you sure?" for deletes: the message names what was deleted ("Deleted “Uniqlo” · −RM 268.70 · Shopping · 19 Nov 2026") and stays for 10 seconds. Signing out and deleting a category still ask first
 - **Private by design**: Postgres row-level security means every user can only read and write their own data. The copy kept for offline use is deleted when you sign out
 - **Accessible charts**: chart colours are checked for colour-blind readers in both light and dark mode, every chart has a "Show as table" view, and status is always shown with an icon and words
 

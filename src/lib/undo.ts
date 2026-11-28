@@ -5,7 +5,8 @@ import { friendlyError } from './errors'
 
 type Table = 'transactions' | 'budgets' | 'savings_goals' | 'category_rules' | 'recurring_transactions'
 
-const UNDO_MS = 6000
+// long enough to read which item it was and reach the button
+export const UNDO_MS = 10_000
 
 // Deletes straight away and shows "<message> · Undo" for a few seconds.
 // The delete returns the full row, so Undo puts back exactly what was there

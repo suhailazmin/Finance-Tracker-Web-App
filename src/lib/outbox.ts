@@ -39,8 +39,15 @@ export async function queueTransaction(input: TransactionInput): Promise<Pending
   return item
 }
 
-export function removePending(id: string) {
+// returns what was removed, so it can be put back (Undo)
+export function removePending(id: string): Pending | undefined {
+  const item = cache.find((p) => p.id === id)
   write(cache.filter((p) => p.id !== id))
+  return item
+}
+
+export function restorePending(item: Pending) {
+  if (!cache.some((p) => p.id === item.id)) write([...cache, item])
 }
 
 // Shown in lists with a "Waiting to sync" label; ids start with "pending:"

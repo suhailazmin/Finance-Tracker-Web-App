@@ -2,23 +2,15 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { deleteWithUndo } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
-import type { Transaction, TransactionInput, TransactionType } from '../lib/types'
+import type { Transaction, TransactionInput } from '../lib/types'
+import { applySearch, type SearchFilters } from '../lib/search'
 import { friendlyError } from '../lib/errors'
 import { toast } from 'sonner'
 import { formatRM } from '../lib/format'
 
-export type SearchFilters = {
-  q: string // matched anywhere in the description, any case
-  category: string // '' = any, 'none' = Uncategorized, otherwise a category id
-  type: '' | TransactionType
-  from?: string // yyyy-MM-dd, inclusive
-  to?: string
-}
+export type { SearchFilters }
 
 export const SEARCH_LIMIT = 300
-
-// "%" and "_" are wildcards in LIKE patterns; escape them so they're searched literally
-const likeEscape = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`)
 
 type Result = { key: string; transactions: Transaction[]; count: number; error: string }
 
@@ -43,15 +35,10 @@ export function useTransactionSearch(filters: SearchFilters, enabled: boolean) {
     if (!enabled) return
     let ignore = false
     const done = beginLoad()
-    let query = supabase
-      .from('transactions')
-      .select('id, date, description, amount, type, category_id, source', { count: 'exact' })
-    if (q) query = query.ilike('description', `%${likeEscape(q)}%`)
-    if (category === 'none') query = query.is('category_id', null)
-    else if (category) query = query.eq('category_id', category)
-    if (type) query = query.eq('type', type)
-    if (from) query = query.gte('date', from)
-    if (to) query = query.lte('date', to)
+    const query = applySearch(
+      supabase.from('transactions').select('id, date, description, amount, type, category_id, source, created_at', { count: 'exact' }),
+      { q, category, type, from, to }
+    )
     query
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
@@ -85,8 +72,8 @@ export function useTransactionSearch(filters: SearchFilters, enabled: boolean) {
   }
 
   // deletes at once; the toast offers Undo
-  async function remove(id: string, detail?: string) {
-    const error = await deleteWithUndo('transactions', id, 'Transaction deleted', detail)
+  async function remove(id: string, detail?: string, title = 'Transaction deleted') {
+    const error = await deleteWithUndo('transactions', id, title, detail)
     if (!error) refresh()
     return error
   }
