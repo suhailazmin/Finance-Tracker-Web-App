@@ -45,7 +45,13 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 - **Dashboard**: the monthly surplus (income minus spending, or the shortfall when spending is higher), income and expenses compared with last month, how much of your income you kept, **your priorities**, the month-end forecast, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
 - **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. Tap one for its **details**: full description, amount, date, category, type, where it came from (added by you, imported, recurring) and when it was added, with a link to everything from the same merchant
 - **Search**: by merchant or by **exact amount** (`12.50` or `RM 12.50`), across every month, this month or **a date range**, combined with category and expense/income filters. Export saves exactly what's found
-- **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns, reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`), and lets you review everything before saving. Importing the same file twice never creates duplicates
+- **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns and reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`). Before saving you see:
+  - a summary: how many will be imported (money in and out), how many are already in Monetra, possible duplicates and lines that couldn't be read
+  - **possible duplicates**: lines with the same date and amount as a transaction you already have (typed in, or from another file), left out unless you tick them
+  - **why each line was skipped** ("“31/02/2026” isn't a date"), with a **Fix** button to type in what's missing
+  - a filter and **one category for many rows at once** (type `SHOPEE`, pick Shopping)
+
+  Afterwards a **reconciliation** shows every line accounted for: imported, duplicates skipped, left out and unreadable, with the income and expenses imported. **Past imports** lists each statement, and a whole import can be removed (with Undo). Importing the same file twice never creates duplicates
 - **Recurring transactions**: salary, rent and bills are added every month automatically, or shown on the dashboard to confirm when the amount changes (like TNB). Missed months are caught up, and nothing is ever added twice
 - **Export to CSV**: download all your data, or exactly what's on screen, for a backup or a spreadsheet. Monetra can import its own export back
 

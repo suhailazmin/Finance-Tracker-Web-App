@@ -191,9 +191,23 @@ export function directionOf(raw: string | undefined): TransactionType | null {
 
 // ---------- turning rows into transactions ----------
 
-export function buildRows(sheet: Sheet, mapping: Mapping): { rows: ParsedRow[]; skipped: number } {
+// A line that couldn't be read as a transaction: why, and whatever could be read, so it can be fixed
+export type SkippedRow = {
+  line: number
+  reason: string
+  raw: string // the line as it was in the file, shortened
+  summary: boolean // a balance/total line: not a transaction, nothing to fix
+  date: string // yyyy-MM-dd if the date could be read, else ''
+  description: string
+  amount: number | null
+  type: TransactionType
+}
+
+const SUMMARY_LINE = /\b(opening|closing|beginning|ending|brought forward|carried forward|b\/f|c\/f)\b|\b(balance|baki|total|jumlah|subtotal)\b/i
+
+export function buildRows(sheet: Sheet, mapping: Mapping): { rows: ParsedRow[]; skipped: SkippedRow[] } {
   const rows: ParsedRow[] = []
-  let skipped = 0
+  const skipped: SkippedRow[] = []
 
   sheet.rows.forEach((cells, i) => {
     const line = i + 2 // header is line 1 of the data block
@@ -208,10 +222,17 @@ export function buildRows(sheet: Sheet, mapping: Mapping): { rows: ParsedRow[]; 
     let amount = 0
     let type: TransactionType | null = null
     const hint = mapping.direction >= 0 ? directionOf(cells[mapping.direction]) : null
+    // the amount text as written, for explaining why it couldn't be read
+    let amountText = ''
+    let amountUnreadable = false
 
     if (mapping.mode === 'split') {
-      const out = parseAmount(cells[mapping.moneyOut])
-      const into = parseAmount(cells[mapping.moneyIn])
+      const outText = clean(cells[mapping.moneyOut])
+      const inText = clean(cells[mapping.moneyIn])
+      const out = parseAmount(outText)
+      const into = parseAmount(inText)
+      amountText = outText || inText
+      amountUnreadable = Boolean((outText && !out) || (inText && !into))
       if (out && out.value > 0) {
         amount = out.value
         type = 'expense'
@@ -220,7 +241,9 @@ export function buildRows(sheet: Sheet, mapping: Mapping): { rows: ParsedRow[]; 
         type = 'income'
       }
     } else {
-      const a = parseAmount(cells[mapping.amount])
+      amountText = clean(cells[mapping.amount])
+      const a = parseAmount(amountText)
+      amountUnreadable = Boolean(amountText && !a)
       if (a && a.value > 0) {
         amount = a.value
         if (a.marker) type = a.marker === 'cr' ? 'income' : 'expense'
@@ -230,12 +253,33 @@ export function buildRows(sheet: Sheet, mapping: Mapping): { rows: ParsedRow[]; 
       }
     }
 
-    // rows without a date or an amount are summaries, opening balances or notes
-    if (!date || !type || amount <= 0) {
-      skipped++
+    if (date && type && amount > 0) {
+      rows.push({ line, date, description, amount, type })
       return
     }
-    rows.push({ line, date, description, amount, type })
+
+    // not a transaction as it stands: say why, in words
+    const dateText = clean(cells[mapping.date])
+    // "Opening balance" or "Total" with no date or no amount: a statement line, not a transaction
+    const summary = (!date || !amountText) && SUMMARY_LINE.test(cells.join(' '))
+    let reason: string
+    if (summary) reason = 'A balance or total line, not a transaction'
+    else if (!dateText) reason = 'No date'
+    else if (!date) reason = `“${dateText}” isn’t a date Monetra can read`
+    else if (amountUnreadable) reason = `“${amountText}” isn’t an amount Monetra can read`
+    else if (!amountText) reason = 'No amount'
+    else reason = 'The amount is 0'
+    const raw = cells.filter(Boolean).join(' · ')
+    skipped.push({
+      line,
+      reason,
+      raw: raw.length > 90 ? raw.slice(0, 89) + '…' : raw,
+      summary,
+      date: date ?? '',
+      description,
+      amount: amount > 0 ? amount : null,
+      type: type ?? hint ?? 'expense',
+    })
   })
 
   return { rows, skipped }
