@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: monthly surplus, stat tiles, month-end forecast, budget alerts and a recurring bill to confirm" width="900" />
+  <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: monthly surplus, stat tiles, your priorities and the month-end forecast" width="900" />
 </p>
 
 ## Screenshots
@@ -23,7 +23,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 
 | Dashboard | Month-end forecast | Search | Recurring |
 | :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/phone-dashboard.png" alt="Dashboard on a phone" width="200" /> | <img src="docs/screenshots/phone-forecast.png" alt="Month-end forecast and budget alerts" width="200" /> | <img src="docs/screenshots/phone-search.png" alt="Searching grab across all months, with matches highlighted" width="200" /> | <img src="docs/screenshots/phone-recurring.png" alt="Recurring salary, bills and rent with auto and ask-first modes" width="200" /> |
+| <img src="docs/screenshots/phone-dashboard.png" alt="Dashboard on a phone" width="200" /> | <img src="docs/screenshots/phone-forecast.png" alt="Month-end forecast, with how much of the month’s income should be left" width="200" /> | <img src="docs/screenshots/phone-search.png" alt="Searching grab across all months, with matches highlighted" width="200" /> | <img src="docs/screenshots/phone-recurring.png" alt="Recurring salary, bills and rent with auto and ask-first modes" width="200" /> |
 
 | Statement import | Dark mode | Sign-in |
 | :---: | :---: | :---: |
@@ -42,14 +42,15 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 ## Features
 
 ### Tracking
-- **Dashboard**: the monthly surplus (income minus spending, or the shortfall when spending is higher), income and expenses compared with last month, how much of your income you kept, the month-end forecast, budgets that are heading over, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
+- **Dashboard**: the monthly surplus (income minus spending, or the shortfall when spending is higher), income and expenses compared with last month, how much of your income you kept, **your priorities**, the month-end forecast, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
 - **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. **Search** descriptions across every month, and filter by category, expense or income
 - **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns, reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`), and lets you review everything before saving. Importing the same file twice never creates duplicates
 - **Recurring transactions**: salary, rent and bills are added every month automatically, or shown on the dashboard to confirm when the amount changes (like TNB). Missed months are caught up, and nothing is ever added twice
 - **Export to CSV**: download all your data, or exactly what's on screen, for a backup or a spreadsheet. Monetra can import its own export back
 
 ### Planning
-- **Month-end forecast**: "at this pace you'll spend about RM X this month", worked out from your everyday spending rate plus the recurring bills still to come
+- **Your priorities**: a short list of what needs doing this month, most urgent first, each with one next step: a budget that's over or heading over, spending that may pass your income, a bill waiting to be confirmed, expenses without a category, a goal that's falling behind, and how much you can safely save
+- **Month-end forecast**: "at this pace you'll spend about RM X this month" and how much of your income should be left, worked out from your everyday spending rate plus the recurring bills still to come
 - **Budgets**: a monthly limit per category with a "today" marker, an estimate for the month end, and **alerts before you go over**
 - **Savings goals**: target, deadline and progress, with how much to save each month. Suggests an emergency fund of 3–6 months of your average spending
 - **Categories and auto-categorization**: create, rename and recolour categories, and an icon is picked from the name. Keyword rules (e.g. `PETRONAS` → Petrol) categorize new and imported transactions, and new accounts start with rules for common Malaysian merchants

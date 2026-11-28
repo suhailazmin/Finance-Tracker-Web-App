@@ -1,5 +1,6 @@
 import { endOfMonth, format } from 'date-fns'
-import { Telescope, TrendingDown, TrendingUp, TriangleAlert } from 'lucide-react'
+import { Telescope, TrendingDown, TrendingUp, TriangleAlert, Wallet } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import SectionCard from './SectionCard'
 import { chartColors } from '../lib/chartTheme'
 import { formatRM } from '../lib/format'
@@ -24,6 +25,7 @@ export default function ForecastCard({ forecast, month, income, previousExpenses
 
   return (
     <SectionCard
+      id="forecast"
       title="Month-end forecast"
       description={early ? 'Early estimate: only a few days of spending so far' : `Based on your spending since 1 ${format(month, 'MMM')}`}
       icon={Telescope}
@@ -33,6 +35,33 @@ export default function ForecastCard({ forecast, month, income, previousExpenses
       <p className="text-sm text-muted-foreground">At this pace you’ll spend about</p>
       <p className="text-3xl font-extrabold tracking-tight">{formatRM(Math.round(projected))}</p>
       <p className="text-sm text-muted-foreground">by {format(endOfMonth(month), 'd MMMM')}</p>
+
+      {/* the practical answer: what should be left of this month's income */}
+      {income > 0 && (
+        <p
+          className={cn(
+            'mt-3 flex items-start gap-2 rounded-xl px-3 py-2 text-sm',
+            overIncome ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-secondary-foreground'
+          )}
+        >
+          {overIncome ? (
+            <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          ) : (
+            <Wallet className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          )}
+          <span>
+            {overIncome ? (
+              <>
+                About <strong>{formatRM(Math.round(projected - income))}</strong> more than you’ve earned this month
+              </>
+            ) : (
+              <>
+                About <strong>{formatRM(Math.round(income - projected))}</strong> of this month’s income left at month end
+              </>
+            )}
+          </span>
+        </p>
+      )}
 
       {/* spent so far (solid) + still expected (light), against income */}
       <div className="mt-4">
@@ -71,18 +100,6 @@ export default function ForecastCard({ forecast, month, income, previousExpenses
       <ul className="mt-4 space-y-1.5 text-sm">
         {upcomingRecurring > 0 && (
           <li className="text-muted-foreground">Includes {formatRM(Math.round(upcomingRecurring))} of recurring bills still to come.</li>
-        )}
-        {overIncome ? (
-          <li className="flex items-start gap-1.5 font-semibold text-destructive">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            That’s about {formatRM(Math.round(projected - income))} more than you’ve earned this month.
-          </li>
-        ) : (
-          income > 0 && (
-            <li className="text-muted-foreground">
-              That would leave about <strong className="text-foreground">{formatRM(Math.round(income - projected))}</strong> of this month’s income.
-            </li>
-          )
         )}
         {diff !== null && Math.abs(diff) >= 1 && (
           <li className="flex items-center gap-1.5 text-muted-foreground">

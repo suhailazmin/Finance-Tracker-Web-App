@@ -32,6 +32,15 @@ export function dueOccurrences(item: RecurringTransaction, today = new Date()): 
   return due
 }
 
+// "Ask me first" items whose date has come, one month at a time per item, oldest first
+export function dueToConfirm(items: RecurringTransaction[], today = new Date()) {
+  return items
+    .filter((i) => i.active && !i.auto_add)
+    .map((item) => ({ item, due: dueOccurrences(item, today)[0] }))
+    .filter((d): d is { item: RecurringTransaction; due: Due } => Boolean(d.due))
+    .sort((a, b) => a.due.date.getTime() - b.due.date.getTime())
+}
+
 // The next date it will be added or asked about (today or later, or an overdue one if any)
 export function nextOccurrence(item: RecurringTransaction, today = new Date()): Date {
   const overdue = dueOccurrences(item, today)

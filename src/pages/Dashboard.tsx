@@ -14,12 +14,12 @@ import {
   ReceiptText,
   Target,
 } from 'lucide-react'
-import BudgetAlerts from '../components/BudgetAlerts'
 import BudgetSummary from '../components/BudgetSummary'
 import DashboardHero from '../components/DashboardHero'
 import DueRecurring from '../components/DueRecurring'
 import EmptyState from '../components/EmptyState'
 import ForecastCard from '../components/ForecastCard'
+import PrioritiesCard from '../components/PrioritiesCard'
 import { ErrorAlert } from '../components/Feedback'
 import GoalsSummary from '../components/GoalsSummary'
 import MonthPicker from '../components/MonthPicker'
@@ -40,6 +40,8 @@ import { useTransactions } from '../hooks/useTransactions'
 import { monthProgress } from '../lib/budget'
 import { chartColors } from '../lib/chartTheme'
 import { forecastMonth, isCurrentMonth } from '../lib/forecast'
+import { buildPriorities } from '../lib/priorities'
+import { dueToConfirm } from '../lib/recurring'
 import { formatRM } from '../lib/format'
 import { sumRM } from '../lib/money'
 
@@ -120,32 +122,34 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* things that need a tap first */}
-      <DueRecurring categories={categories} />
-
+      {/* this month: what to do next, then where the month is heading */}
       {showForecast && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <PrioritiesCard
+            className="lg:col-span-5"
+            priorities={buildPriorities({
+              today,
+              income,
+              transactions,
+              recurring,
+              budgets,
+              categories,
+              goals,
+              due: dueToConfirm(recurring, today).map(({ item, due }) => ({ description: item.description, date: due.date })),
+            })}
+          />
           <ForecastCard
             forecast={forecastMonth(transactions, recurring, today)}
             month={month}
             income={income}
             previousExpenses={previous?.expenses}
             previousName={previousName}
-            className={budgets.length ? 'lg:col-span-7' : 'lg:col-span-12'}
+            className="lg:col-span-7"
           />
-          {/* budgets that are over or heading over; the full list is on the Budgets page */}
-          {budgets.length > 0 && (
-            <BudgetAlerts
-              budgets={budgets}
-              categories={categories}
-              transactions={transactions}
-              recurring={recurring}
-              today={today}
-              className="lg:col-span-5"
-            />
-          )}
         </div>
       )}
+
+      <DueRecurring categories={categories} />
 
       {empty ? (
         <Card>
@@ -237,7 +241,7 @@ function change(current: number, previous: number, previousName: string, upIsGoo
   const diff = current - previous
   if (Math.abs(diff) < 0.005) return { text: `Same as ${previousName}`, direction: 'flat', pct: 0 }
   return {
-    text: `${diff > 0 ? '+' : '−'}${formatRM(Math.abs(diff))} vs ${previousName}`,
+    text: `${formatRM(Math.abs(diff))} ${diff > 0 ? 'more' : 'less'} than ${previousName}`,
     direction: diff > 0 ? 'up' : 'down',
     pct: (diff / previous) * 100,
     good: diff > 0 === upIsGood,
