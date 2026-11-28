@@ -2,6 +2,7 @@ import Papa from 'papaparse'
 import { format, parseISO } from 'date-fns'
 import { supabase } from './supabase'
 import type { Category, TransactionType } from './types'
+import { applySearch, type SearchFilters } from './search'
 
 // CSV exports for backups and spreadsheets. Fetches every row (in pages), not just what's on screen.
 
@@ -58,15 +59,7 @@ const money = (n: number | string) => Math.round(Number(n) * 100) / 100
 
 // ---------- transactions ----------
 
-export type TransactionFilter = {
-  q?: string
-  category?: string // '' any, 'none' uncategorized, or an id
-  type?: '' | TransactionType
-  from?: string
-  to?: string
-}
-
-const likeEscape = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`)
+export type TransactionFilter = Partial<SearchFilters>
 
 type TxRow = { date: string; description: string; amount: number; type: TransactionType; category_id: string | null; source: string | null }
 
@@ -81,15 +74,10 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export async function exportTransactions(filter: TransactionFilter, categories: Category[], filename: string) {
   const names = new Map(categories.map((c) => [c.id, c.name]))
-  const rows = await fetchAll<TxRow>('transactions', 'date, description, amount, type, category_id, source', (q) => {
-    if (filter.q?.trim()) q = q.ilike('description', `%${likeEscape(filter.q.trim())}%`)
-    if (filter.category === 'none') q = q.is('category_id', null)
-    else if (filter.category) q = q.eq('category_id', filter.category)
-    if (filter.type) q = q.eq('type', filter.type)
-    if (filter.from) q = q.gte('date', filter.from)
-    if (filter.to) q = q.lte('date', filter.to)
-    return q.order('date', { ascending: false }).order('created_at', { ascending: false })
-  })
+  // same filters as the list on screen, so the file holds exactly what was found
+  const rows = await fetchAll<TxRow>('transactions', 'date, description, amount, type, category_id, source', (q) =>
+    applySearch(q, filter).order('date', { ascending: false }).order('created_at', { ascending: false })
+  )
   return saveCsv(
     filename,
     rows.map((t) => ({

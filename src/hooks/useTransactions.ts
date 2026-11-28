@@ -4,8 +4,8 @@ import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthContext'
 import { isOfflineError } from '../lib/online'
-import { PENDING_PREFIX, pendingAsTransaction, queueTransaction, removePending, usePending } from '../lib/outbox'
-import { deleteWithUndo } from '../lib/undo'
+import { PENDING_PREFIX, pendingAsTransaction, queueTransaction, removePending, restorePending, usePending } from '../lib/outbox'
+import { deleteWithUndo, UNDO_MS } from '../lib/undo'
 import { beginLoad, useRefreshVersion } from '../lib/refresh'
 import type { Transaction, TransactionInput } from '../lib/types'
 import { friendlyError } from '../lib/errors'
@@ -31,7 +31,7 @@ export function useTransactions(month: Date) {
     const done = beginLoad()
     supabase
       .from('transactions')
-      .select('id, date, description, amount, type, category_id, source')
+      .select('id, date, description, amount, type, category_id, source, created_at')
       .gte('date', from)
       .lte('date', to)
       .order('date', { ascending: false })
@@ -79,12 +79,16 @@ export function useTransactions(month: Date) {
   }
 
   // deletes at once; the toast offers Undo
-  async function remove(id: string, detail?: string) {
+  async function remove(id: string, detail?: string, title = 'Transaction deleted') {
     if (id.startsWith(PENDING_PREFIX)) {
-      removePending(id.slice(PENDING_PREFIX.length)) // not sent yet: just drop it from the queue
+      // not sent yet: drop it from the queue, and Undo puts it back
+      const item = removePending(id.slice(PENDING_PREFIX.length))
+      if (item) {
+        toast(title, { description: detail, duration: UNDO_MS, action: { label: 'Undo', onClick: () => restorePending(item) } })
+      }
       return undefined
     }
-    const error = await deleteWithUndo('transactions', id, 'Transaction deleted', detail)
+    const error = await deleteWithUndo('transactions', id, title, detail)
     if (!error) refresh()
     return error
   }

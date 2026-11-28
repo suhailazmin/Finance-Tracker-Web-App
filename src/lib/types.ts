@@ -14,10 +14,11 @@ export type Transaction = {
   amount: number // always positive RM; type says direction
   type: TransactionType
   category_id: string | null
-  source: string
+  source: string // manual | maybank | cimb | tng | generic | recurring, or pending (offline, not sent yet)
+  created_at?: string // when it was added to Monetra
 }
 
-export type TransactionInput = Omit<Transaction, 'id' | 'source'>
+export type TransactionInput = Omit<Transaction, 'id' | 'source' | 'created_at'>
 
 export type Budget = {
   id: string
