@@ -12,6 +12,8 @@ const tones = {
 export type Tone = keyof typeof tones
 
 type Props = {
+  // lets other parts of the page link here (#id); leaves room for the sticky header
+  id?: string
   title?: ReactNode
   description?: ReactNode
   icon?: LucideIcon
@@ -24,6 +26,7 @@ type Props = {
 
 // The standard content card used on every page
 export default function SectionCard({
+  id,
   title,
   description,
   icon: Icon,
@@ -34,7 +37,7 @@ export default function SectionCard({
   children,
 }: Props) {
   return (
-    <Card className={cn('gap-4 [--card-spacing:--spacing(5)]', className)}>
+    <Card id={id} className={cn('scroll-mt-24 gap-4 [--card-spacing:--spacing(5)]', className)}>
       {(title || description || actions) && (
         <CardHeader className={cn(Icon && 'grid-cols-[auto_1fr] gap-x-3 has-data-[slot=card-action]:grid-cols-[auto_1fr_auto]')}>
           {Icon && (

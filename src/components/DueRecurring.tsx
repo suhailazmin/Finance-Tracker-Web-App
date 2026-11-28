@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { useRecurring } from '../hooks/useRecurring'
 import { formatRM } from '../lib/format'
 import { useAmountsHidden } from '../lib/privacy'
-import { dueOccurrences, type Due } from '../lib/recurring'
+import { dueToConfirm, type Due } from '../lib/recurring'
 import { refreshAll } from '../lib/refresh'
 import type { Category, RecurringTransaction } from '../lib/types'
 import { toast } from 'sonner'
@@ -22,16 +22,12 @@ export default function DueRecurring({ categories }: { categories: Category[] })
   const { items, missingTable, post, skip } = useRecurring()
   if (missingTable) return null
 
-  // one month at a time per item, oldest first
-  const due = items
-    .filter((i) => i.active && !i.auto_add)
-    .map((item) => ({ item, due: dueOccurrences(item)[0] }))
-    .filter((d): d is { item: RecurringTransaction; due: Due } => Boolean(d.due))
-    .sort((a, b) => a.due.date.getTime() - b.due.date.getTime())
+  const due = dueToConfirm(items)
   if (due.length === 0) return null
 
   return (
     <SectionCard
+      id="due"
       title="Due to confirm"
       description="Recurring items set to ask first"
       icon={BellRing}
