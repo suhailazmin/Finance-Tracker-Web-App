@@ -2,6 +2,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { format, parseISO } from 'date-fns'
 import { axisTick, chartColors, hoverCursor, yAxisProps } from '../../lib/chartTheme'
 import { formatRM } from '../../lib/format'
+import { sumRM } from '../../lib/money'
 import { useAmountsHidden } from '../../lib/privacy'
 import { useTheme } from '../../lib/theme'
 import type { MonthTotal } from '../../hooks/useMonthlyTotals'
@@ -54,8 +55,11 @@ export default function MonthlyTrendChart({ totals }: { totals: MonthTotal[] }) 
         </ResponsiveContainer>
       </div>
       <TableView
-        headers={['Month', 'Income', 'Expenses', 'Balance']}
-        rows={data.map((r) => [r.long, formatRM(r.income), formatRM(r.expenses), formatRM(r.income - r.expenses)])}
+        headers={['Month', 'Income', 'Expenses', 'Surplus or shortfall']}
+        rows={data.map((r) => {
+          const net = sumRM([r.income, -r.expenses])
+          return [r.long, formatRM(r.income), formatRM(r.expenses), net < 0 ? `${formatRM(-net)} short` : formatRM(net)]
+        })}
       />
     </>
   )

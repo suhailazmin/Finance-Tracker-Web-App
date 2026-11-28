@@ -44,7 +44,7 @@ import { formatRM } from '../lib/format'
 import { sumRM } from '../lib/money'
 
 // The chart library is the heaviest part of the dashboard, so the charts load just after
-// the page appears (balance and tiles show first)
+// the page appears (the surplus and tiles show first)
 const DailySpendingChart = lazy(() => import('../components/charts/DailySpendingChart'))
 const MonthlyTrendChart = lazy(() => import('../components/charts/MonthlyTrendChart'))
 const chartPlaceholder = <div className="h-56 animate-pulse rounded-xl bg-muted/60" aria-hidden="true" />
@@ -63,12 +63,12 @@ export default function Dashboard() {
 
   const income = sumRM(transactions.filter((t) => t.type === 'income').map((t) => t.amount))
   const expenses = sumRM(transactions.filter((t) => t.type === 'expense').map((t) => t.amount))
-  const balance = sumRM([income, -expenses])
+  const surplus = sumRM([income, -expenses])
   const previous = totals.at(-2)
   const previousName = format(addMonths(month, -1), 'MMMM')
   const monthName = format(month, 'MMMM yyyy')
 
-  const rate = income > 0 ? Math.round((balance / income) * 100) : null
+  const rate = income > 0 ? Math.round((surplus / income) * 100) : null
   const previousRate = previous && previous.income > 0 ? Math.round(((previous.income - previous.expenses) / previous.income) * 100) : null
   const goalsSaved = sumRM(goals.map((g) => g.current_amount))
   const empty = !loading && transactions.length === 0
@@ -83,10 +83,10 @@ export default function Dashboard() {
 
       {error && <ErrorAlert message={error} />}
 
-      {/* Balance card + four stat tiles */}
+      {/* Surplus card + four stat tiles */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div className="lg:col-span-5">
-          <DashboardHero month={month} balance={balance} income={income} />
+          <DashboardHero month={month} surplus={surplus} income={income} />
         </div>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-7">
           <StatTile

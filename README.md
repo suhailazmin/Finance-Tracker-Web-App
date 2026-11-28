@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: balance card, stat tiles, month-end forecast, budget alerts and a recurring bill to confirm" width="900" />
+  <img src="docs/screenshots/desktop-dashboard.png" alt="Monetra dashboard on desktop: monthly surplus, stat tiles, month-end forecast, budget alerts and a recurring bill to confirm" width="900" />
 </p>
 
 ## Screenshots
@@ -42,7 +42,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 ## Features
 
 ### Tracking
-- **Dashboard**: the month's balance, income and expenses compared with last month, how much of your income you kept, the month-end forecast, budgets that are heading over, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
+- **Dashboard**: the monthly surplus (income minus spending, or the shortfall when spending is higher), income and expenses compared with last month, how much of your income you kept, the month-end forecast, budgets that are heading over, recent transactions and spending by category (tap a category to see its transactions). The 6-month trend, daily spending and goals are one tap away under **More insights**
 - **Transactions**: add, edit and delete income and expenses, grouped by day with category icons. **Search** descriptions across every month, and filter by category, expense or income
 - **Import bank statements (CSV)**: works with Maybank, CIMB, Touch ’n Go eWallet and other exports. Monetra finds the columns, reads Malaysian dates and amounts (`1,234.50`, `12.00-`, `CR`/`DR`), and lets you review everything before saving. Importing the same file twice never creates duplicates
 - **Recurring transactions**: salary, rent and bills are added every month automatically, or shown on the dashboard to confirm when the amount changes (like TNB). Missed months are caught up, and nothing is ever added twice
