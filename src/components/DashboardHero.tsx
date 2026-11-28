@@ -2,15 +2,15 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { PiggyBank } from 'lucide-react'
 import monetraIcon from '../assets/monetra-icon.png'
-import { formatRM } from '../lib/format'
+import { formatRM, surplusLabel } from '../lib/format'
 import HideAmountsButton from './HideAmountsButton'
 
-// Green balance card: the month's balance as the headline number, with the mascot
-export default function DashboardHero({ month, balance, income }: { month: Date; balance: number; income: number }) {
+// Green card: the month's surplus (income minus spending) as the headline number, with the mascot
+export default function DashboardHero({ month, surplus, income }: { month: Date; surplus: number; income: number }) {
   // read the clock once, when the banner first appears
   const [hour] = useState(() => new Date().getHours())
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
-  const kept = income > 0 ? Math.round((balance / income) * 100) : null
+  const kept = income > 0 ? Math.round((surplus / income) * 100) : null
 
   return (
     <section className="relative flex h-full min-h-52 flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-brand-forest to-brand-leaf p-6 text-white shadow-xl shadow-brand-forest/25">
@@ -28,17 +28,17 @@ export default function DashboardHero({ month, balance, income }: { month: Date;
 
       <div className="relative mt-4">
         <div className="flex items-center gap-1.5">
-          <p className="text-sm text-white/75">Balance</p>
+          <p className="text-sm text-white/75">{surplusLabel(surplus)}</p>
           <HideAmountsButton className="size-7 text-white/80 hover:bg-white/15 hover:text-white [&_svg]:size-4" />
         </div>
-        <p className="text-4xl font-extrabold tracking-tight sm:text-[2.75rem]">{formatRM(balance)}</p>
+        <p className="text-4xl font-extrabold tracking-tight sm:text-[2.75rem]">{formatRM(Math.abs(surplus))}</p>
         <p className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
           <PiggyBank className="size-3.5 shrink-0" aria-hidden="true" />
           {kept === null
             ? 'No income recorded this month'
             : kept >= 0
               ? `Income minus spending in ${format(month, 'MMMM')}`
-              : `You’ve spent ${formatRM(-balance)} more than you earned`}
+              : `You’ve spent ${formatRM(-surplus)} more than you earned`}
         </p>
       </div>
     </section>

@@ -20,7 +20,7 @@ import { useCategoryRules } from '../hooks/useCategoryRules'
 import { SEARCH_LIMIT, useTransactionSearch } from '../hooks/useTransactionSearch'
 import { useTransactions } from '../hooks/useTransactions'
 import { chartColors } from '../lib/chartTheme'
-import { formatRM } from '../lib/format'
+import { formatRM, surplusLabel } from '../lib/format'
 import type { TransactionInput, TransactionType } from '../lib/types'
 import { sumRM } from '../lib/money'
 import { friendlyError } from '../lib/errors'
@@ -86,6 +86,7 @@ export default function Transactions() {
 
   const income = sumRM(transactions.filter((t) => t.type === 'income').map((t) => t.amount))
   const expenses = sumRM(transactions.filter((t) => t.type === 'expense').map((t) => t.amount))
+  const surplus = sumRM([income, -expenses])
   const partial = searching && search.count > transactions.length
 
   async function handleAdd(input: TransactionInput) {
@@ -149,7 +150,7 @@ export default function Transactions() {
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         <Stat label="Income" value={formatRM(income)} icon={ArrowDownLeft} color={chartColors.income} />
         <Stat label="Expenses" value={formatRM(expenses)} icon={ArrowUpRight} color={chartColors.expenses} />
-        <Stat label="Balance" value={formatRM(income - expenses)} icon={Wallet} />
+        <Stat label={surplusLabel(surplus, { monthly: !searching })} value={formatRM(Math.abs(surplus))} icon={Wallet} />
       </div>
       {searching && (
         <p className="-mt-3 text-xs text-muted-foreground">
@@ -303,7 +304,7 @@ export default function Transactions() {
 // Compact tile so three fit side by side on a phone; the icon carries the colour, the value stays in text ink
 function Stat({ label, value, icon: Icon, color }: { label: string; value: string; icon: LucideIcon; color?: string }) {
   return (
-    <Card size="sm" className="gap-2 px-3 sm:px-4">
+    <Card size="sm" className="justify-between gap-2 px-3 sm:px-4">
       <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground sm:text-sm">
         <span
           className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary sm:size-8"

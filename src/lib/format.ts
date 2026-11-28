@@ -10,5 +10,10 @@ export const formatRM = (amount: number) => (amountsHidden() ? HIDDEN_RM : rm.fo
 
 const compact = new Intl.NumberFormat('en-MY', { notation: 'compact', maximumFractionDigits: 1 })
 
+// Income minus spending. It isn't money in the bank, so it's never called a balance:
+// "Monthly surplus" when you kept some, "Monthly shortfall" (shown without a minus) when you spent more
+export const surplusLabel = (net: number, { monthly = true } = {}) =>
+  net < 0 ? (monthly ? 'Monthly shortfall' : 'Shortfall') : monthly ? 'Monthly surplus' : 'Surplus'
+
 // For chart axes: formatRMCompact(1500) -> "RM1.5K" (or "RM ••••" when amounts are hidden)
 export const formatRMCompact = (amount: number) => (amountsHidden() ? HIDDEN_RM : `RM${compact.format(amount)}`)
