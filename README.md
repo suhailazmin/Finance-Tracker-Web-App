@@ -57,7 +57,7 @@ Monetra works on desktop and phone. On a phone it installs to the Home Screen, o
 
 ### Planning
 - **Your priorities**: a short list of what needs doing this month, most urgent first, each with one next step: a budget that's over or heading over, spending that may pass your income, a bill waiting to be confirmed, expenses without a category, a goal that's falling behind, and how much you can safely save
-- **Month-end forecast**: "at this pace you'll spend about RM X this month" and how much of your income should be left, worked out from your everyday spending rate plus the recurring bills still to come
+- **Month-end forecast**: "at this pace you'll spend about RM X this month" and how much of your income should be left. It says which days it's based on, keeps everyday spending and recurring bills apart (naming the bills still to come), warns when there's under a week of data, points out a big one-off purchase that's pushing it up (and what it would be without it), and explains how it's worked out
 - **Budgets**: a monthly limit per category with a "today" marker, an estimate for the month end, and **alerts before you go over**
 - **Savings goals**: target, deadline and progress, with how much to save each month. Suggests an emergency fund of 3–6 months of your average spending
 - **Categories and auto-categorization**: create, rename and recolour categories, and an icon is picked from the name. Keyword rules (e.g. `PETRONAS` → Petrol) categorize new and imported transactions, and new accounts start with rules for common Malaysian merchants
