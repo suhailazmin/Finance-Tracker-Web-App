@@ -11,7 +11,7 @@ export default function Root() {
     <>
       <App />
       {/* on phones, sit above the floating tab bar */}
-      <Toaster theme={dark ? 'dark' : 'light'} position="bottom-center" mobileOffset={{ bottom: 'calc(6.5rem + env(safe-area-inset-bottom))' }} />
+      <Toaster theme={dark ? 'dark' : 'light'} position="bottom-center" mobileOffset={{ bottom: 'calc(5.5rem + max(0.75rem, env(safe-area-inset-bottom)))' }} />
     </>
   )
 }

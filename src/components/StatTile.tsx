@@ -24,9 +24,10 @@ type Props = {
   detail?: string
   // makes the whole tile a link, e.g. to the page with the details
   to?: string
+  className?: string
 }
 
-export default function StatTile({ label, value, icon: Icon, keyColor, delta, detail, to }: Props) {
+export default function StatTile({ label, value, icon: Icon, keyColor, delta, detail, to, className }: Props) {
   const Arrow = delta?.direction === 'up' ? ArrowUp : delta?.direction === 'down' ? ArrowDown : Minus
   const tone =
     !delta || delta.direction === 'flat' || delta.good === undefined
@@ -36,7 +37,7 @@ export default function StatTile({ label, value, icon: Icon, keyColor, delta, de
         : 'bg-destructive/10 text-destructive'
 
   const tile = (
-    <Card size="sm" className={cn('h-full gap-3 px-4 py-4', to && 'transition-colors group-hover:bg-muted/40')}>
+    <Card size="sm" className={cn('h-full gap-2.5 px-3.5 py-3.5 sm:gap-3 sm:px-4 sm:py-4', to && 'transition-colors group-hover:bg-muted/40', !to && className)}>
       <div className="flex min-w-0 items-center gap-2.5">
         <span
           className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"
@@ -73,7 +74,7 @@ export default function StatTile({ label, value, icon: Icon, keyColor, delta, de
     </Card>
   )
   return to ? (
-    <Link to={to} className="group block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+    <Link to={to} className={cn('group block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50', className)}>
       {tile}
     </Link>
   ) : (
