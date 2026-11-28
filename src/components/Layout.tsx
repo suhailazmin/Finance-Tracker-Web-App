@@ -196,7 +196,7 @@ export default function Layout() {
 
         <PullToRefresh />
 
-        <main className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:px-8 lg:pt-8 lg:pb-12">
+        <main className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(6rem+max(0.75rem,env(safe-area-inset-bottom)))] lg:px-8 lg:pt-8 lg:pb-12">
           <Suspense fallback={<PageLoading />}>
             <Outlet />
           </Suspense>
@@ -205,10 +205,10 @@ export default function Layout() {
 
       {/* ---------- Phone: floating tab bar with the add button inside ---------- */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] min-[360px]:px-4 lg:hidden"
         aria-label="Main"
       >
-        <div className="mx-auto flex h-16 max-w-sm items-center justify-between rounded-full bg-brand-ink px-2 shadow-xl shadow-brand-ink/30 ring-1 ring-white/10">
+        <div className="mx-auto flex h-16 max-w-sm items-center justify-between gap-0.5 rounded-full bg-brand-ink px-1.5 shadow-xl shadow-brand-ink/30 ring-1 ring-white/10 min-[360px]:px-2">
           {tabLinks.slice(0, 2).map((l) => (
             <TabLink key={l.to} {...l} />
           ))}
@@ -223,7 +223,7 @@ export default function Layout() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                'flex h-12 min-w-16 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
+                'flex h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold tracking-tight transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
                 moreActive ? 'bg-white/12 text-brand-sage' : 'text-white/55 hover:text-white'
               )}
             >
@@ -277,7 +277,7 @@ function TabLink({ to, label, icon: Icon }: (typeof links)[number]) {
       end
       className={({ isActive }) =>
         cn(
-          'flex h-12 min-w-16 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
+          'flex h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold tracking-tight whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-white/50',
           isActive ? 'bg-white/12 text-brand-sage' : 'text-white/55 hover:text-white'
         )
       }

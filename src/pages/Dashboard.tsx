@@ -79,7 +79,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Dashboard"
-        description={`Your money in ${monthName}`}
+        // on phones the month picker right below already says which month
+        description={<span className="hidden sm:inline">Your money in {monthName}</span>}
         actions={<MonthPicker month={month} onChange={setMonth} />}
       />
 
@@ -107,6 +108,7 @@ export default function Dashboard() {
           />
           <StatTile
             label="Kept from income"
+            className="hidden sm:flex"
             value={rate === null ? '—' : `${rate}%`}
             icon={Percent}
             delta={rate !== null && previousRate !== null ? rateChange(rate, previousRate, previousName) : undefined}
@@ -118,6 +120,7 @@ export default function Dashboard() {
             icon={PiggyBank}
             detail={goals.length ? `Across ${goals.length} goal${goals.length === 1 ? '' : 's'}` : 'No goals yet'}
             to="/goals"
+            className="hidden sm:block"
           />
         </div>
       </div>
